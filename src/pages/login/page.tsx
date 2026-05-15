@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/lib/supabase";
 
 type Role = "estudante" | "empresa";
 
@@ -13,11 +14,11 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuth();
+  const { user } = useAuth();
 
   const from = (location.state as { from?: string })?.from ?? "/";
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     if (!email || !password) {
@@ -25,16 +26,25 @@ export default function LoginPage() {
       return;
     }
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      login({
-        nome: role === "estudante" ? "João Silva" : "Empresa Demo",
+    
+    try {
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
         email,
-        role,
-        avatar: "",
+        password,
       });
-      navigate(from, { replace: true });
-    }, 1400);
+
+      if (authError) {
+        setError(authError.message === "Invalid login credentials" 
+          ? "Credenciais inválidas. Verifique o email e palavra-passe." 
+          : authError.message);
+      } else if (data.user) {
+        navigate(from, { replace: true });
+      }
+    } catch (err) {
+      setError("Ocorreu um erro ao entrar. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

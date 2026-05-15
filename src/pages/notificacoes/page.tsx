@@ -1,14 +1,24 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/feature/Navbar";
 import Footer from "@/components/feature/Footer";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/hooks/useAuth";
 import {
-  notificacoesMock,
   categoriaConfig,
-  type Notificacao,
   type NotifCategoria,
-  type NotifRole,
 } from "@/mocks/notificacoes";
+
+export interface Notification {
+  id: string;
+  user_id: string;
+  title: string;
+  content: string;
+  type: string;
+  is_read: boolean;
+  created_at: string;
+  metadata?: any;
+}
 
 const roleLabels: Record<NotifRole, string> = {
   estudante: "Estudante",
@@ -29,82 +39,68 @@ function NotifCard({
   onMarkRead,
   onDelete,
 }: {
-  notif: Notificacao;
+  notif: Notification;
   onMarkRead: (id: string) => void;
   onDelete: (id: string) => void;
 }) {
-  const cfg = categoriaConfig[notif.categoria];
+  const cat = notif.type as NotifCategoria;
+  const cfg = categoriaConfig[cat] || categoriaConfig["sistema"];
+
+  const formatRelativeTime = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMins < 1) return "Agora mesmo";
+    if (diffMins < 60) return `há ${diffMins} min`;
+    if (diffHours < 24) return `há ${diffHours} h`;
+    if (diffDays === 1) return "Ontem";
+    return `há ${diffDays} dias`;
+  };
 
   return (
     <div
       className={`relative rounded-2xl border transition-all group ${
-        notif.lida
+        notif.is_read
           ? "bg-white border-gray-100"
           : "bg-orange-50/30 border-orange-200/60"
       }`}
     >
-      {/* Unread dot */}
-      {!notif.lida && (
+      {!notif.is_read && (
         <div className="absolute top-5 right-5 w-2.5 h-2.5 bg-[#E8501A] rounded-full flex-shrink-0"></div>
       )}
 
       <div className="p-5">
         <div className="flex items-start gap-4">
-          {/* Icon / Avatar */}
           <div className="relative flex-shrink-0">
-            {notif.avatar ? (
-              <div className="w-12 h-12 rounded-xl overflow-hidden border border-gray-100">
-                <img src={notif.avatar} alt="" className="w-full h-full object-cover object-top" />
-              </div>
-            ) : (
-              <div className={`w-12 h-12 flex items-center justify-center rounded-xl ${cfg.bg}`}>
-                <i className={`${cfg.icon} ${cfg.color} text-xl`}></i>
-              </div>
-            )}
-            {/* Category badge over avatar */}
+            <div className={`w-12 h-12 flex items-center justify-center rounded-xl ${cfg.bg}`}>
+              <i className={`${cfg.icon} ${cfg.color} text-xl`}></i>
+            </div>
             <div className={`absolute -bottom-1 -right-1 w-5 h-5 flex items-center justify-center rounded-full ${cfg.bg} border-2 border-white`}>
               <i className={`${cfg.icon} ${cfg.color} text-xs`}></i>
             </div>
           </div>
 
-          {/* Content */}
           <div className="flex-1 min-w-0 pr-6">
             <div className="flex items-start gap-2 flex-wrap mb-1">
               <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${cfg.bg} ${cfg.color}`}>
                 {cfg.label}
               </span>
-              <span className="text-xs text-gray-400">{notif.tempo}</span>
+              <span className="text-xs text-gray-400">{formatRelativeTime(notif.created_at)}</span>
             </div>
-            <h3 className={`font-semibold text-sm leading-snug mb-1 ${notif.lida ? "text-[#374151]" : "text-[#1A1A2E]"}`}>
-              {notif.titulo}
+            <h3 className={`font-semibold text-sm leading-snug mb-1 ${notif.is_read ? "text-[#374151]" : "text-[#1A1A2E]"}`}>
+              {notif.title}
             </h3>
-            <p className="text-xs text-gray-500 leading-relaxed">{notif.descricao}</p>
-
-            {/* Actions */}
-            {notif.acoes && notif.acoes.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-3">
-                {notif.acoes.map((acao) => (
-                  <Link
-                    key={acao.label}
-                    to={acao.href}
-                    className={`text-xs font-medium px-3 py-1.5 rounded-lg transition-colors cursor-pointer whitespace-nowrap ${
-                      acao.primary
-                        ? "bg-[#E8501A] text-white hover:bg-[#C73E0C]"
-                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                    }`}
-                  >
-                    {acao.label}
-                  </Link>
-                ))}
-              </div>
-            )}
+            <p className="text-xs text-gray-500 leading-relaxed">{notif.content}</p>
           </div>
         </div>
 
-        {/* Bottom actions */}
         <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100/80">
           <div className="flex items-center gap-1">
-            {!notif.lida && (
+            {!notif.is_read && (
               <button
                 onClick={() => onMarkRead(notif.id)}
                 className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-emerald-600 transition-colors cursor-pointer px-2 py-1 rounded-lg hover:bg-emerald-50"
@@ -115,7 +111,7 @@ function NotifCard({
                 Marcar como lida
               </button>
             )}
-            {notif.lida && (
+            {notif.is_read && (
               <span className="flex items-center gap-1.5 text-xs text-gray-300">
                 <div className="w-3.5 h-3.5 flex items-center justify-center">
                   <i className="ri-check-double-line"></i>
@@ -140,58 +136,122 @@ function NotifCard({
 }
 
 export default function NotificacoesPage() {
-  const [activeRole, setActiveRole] = useState<NotifRole>("estudante");
+  const { user } = useAuth();
   const [activeCategoria, setActiveCategoria] = useState<string>("todas");
   const [showOnlyUnread, setShowOnlyUnread] = useState(false);
-  const [notifs, setNotifs] = useState<Notificacao[]>(notificacoesMock);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  const fetchNotifications = async (isRefresh = false) => {
+    if (!user) return;
+    if (!isRefresh) setLoading(true);
+    const { data, error } = await supabase
+      .from("notifications")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+
+    if (!error && data) {
+      setNotifications(data);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchNotifications();
+    }
+  }, [user?.id]);
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
     setTimeout(() => setToastMsg(null), 2500);
   };
 
-  const markRead = (id: string) => {
-    setNotifs((prev) => prev.map((n) => (n.id === id ? { ...n, lida: true } : n)));
+  const markRead = async (id: string) => {
+    const { error } = await supabase
+      .from("notifications")
+      .update({ is_read: true })
+      .eq("id", id);
+
+    if (!error) {
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
+      );
+    }
   };
 
-  const markAllRead = () => {
-    setNotifs((prev) =>
-      prev.map((n) => (n.role === activeRole ? { ...n, lida: true } : n))
-    );
-    showToast("Todas as notificações marcadas como lidas");
+  const markAllRead = async () => {
+    if (!user) return;
+    const { error } = await supabase
+      .from("notifications")
+      .update({ is_read: true })
+      .eq("user_id", user.id)
+      .eq("is_read", false);
+
+    if (!error) {
+      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+      showToast("Todas as notificações marcadas como lidas");
+    }
   };
 
-  const deleteNotif = (id: string) => {
-    setNotifs((prev) => prev.filter((n) => n.id !== id));
-    showToast("Notificação removida");
+  const deleteNotif = async (id: string) => {
+    const { error } = await supabase.from("notifications").delete().eq("id", id);
+    if (!error) {
+      setNotifications((prev) => prev.filter((n) => n.id !== id));
+      showToast("Notificação removida");
+    }
   };
 
-  const clearAll = () => {
-    setNotifs((prev) => prev.filter((n) => n.role !== activeRole));
-    showToast("Todas as notificações removidas");
+  const clearAll = async () => {
+    if (!user) return;
+    const { error } = await supabase
+      .from("notifications")
+      .delete()
+      .eq("user_id", user.id);
+
+    if (!error) {
+      setNotifications([]);
+      showToast("Todas as notificações removidas");
+    }
   };
 
-  const filtered = notifs.filter((n) => {
-    const roleMatch = n.role === activeRole;
-    const catMatch = activeCategoria === "todas" || n.categoria === activeCategoria;
-    const readMatch = !showOnlyUnread || !n.lida;
-    return roleMatch && catMatch && readMatch;
-  });
+  const filtered = useMemo(() => {
+    return notifications.filter((n) => {
+      const catMatch = activeCategoria === "todas" || n.type === activeCategoria;
+      const readMatch = !showOnlyUnread || !n.is_read;
+      return catMatch && readMatch;
+    });
+  }, [notifications, activeCategoria, showOnlyUnread]);
 
-  const unreadCount = notifs.filter((n) => n.role === activeRole && !n.lida).length;
-  const totalByRole = notifs.filter((n) => n.role === activeRole).length;
+  const unreadCount = notifications.filter((n) => !n.is_read).length;
+  const totalCount = notifications.length;
 
-  // Group by time
-  const hoje = filtered.filter((n) => n.tempoMs < 86400000);
-  const ontem = filtered.filter((n) => n.tempoMs >= 86400000 && n.tempoMs < 172800000);
-  const anterior = filtered.filter((n) => n.tempoMs >= 172800000);
+  // Grouping logic
+  const groups = useMemo(() => {
+    const g: { label: string; items: Notification[] }[] = [
+      { label: "Hoje", items: [] },
+      { label: "Ontem", items: [] },
+      { label: "Anteriores", items: [] },
+    ];
 
-  const groups: { label: string; items: Notificacao[] }[] = [
-    { label: "Hoje", items: hoje },
-    { label: "Ontem", items: ontem },
-    { label: "Anteriores", items: anterior },
-  ].filter((g) => g.items.length > 0);
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    filtered.forEach((n) => {
+      const d = new Date(n.created_at);
+      d.setHours(0, 0, 0, 0);
+
+      if (d.getTime() === now.getTime()) g[0].items.push(n);
+      else if (d.getTime() === yesterday.getTime()) g[1].items.push(n);
+      else g[2].items.push(n);
+    });
+
+    return g.filter((group) => group.items.length > 0);
+  }, [filtered]);
 
   return (
     <div className="min-h-screen bg-[#F8F7F4]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
@@ -215,7 +275,7 @@ export default function NotificacoesPage() {
                   </span>
                 )}
               </h1>
-              <p className="text-sm text-white/50 mt-1">{totalByRole} notificações no total</p>
+              <p className="text-sm text-white/50 mt-1">{totalCount} notificações no total</p>
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -248,36 +308,19 @@ export default function NotificacoesPage() {
           {/* ── SIDEBAR ── */}
           <aside className="w-full lg:w-64 flex-shrink-0 flex flex-col gap-4">
 
-            {/* Role switcher */}
+            {/* User Profile Info */}
             <div className="bg-white rounded-2xl border border-gray-100 p-4">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Vista</p>
-              <div className="flex flex-col gap-2">
-                {(["estudante", "empresa"] as NotifRole[]).map((role) => {
-                  const count = notifs.filter((n) => n.role === role && !n.lida).length;
-                  return (
-                    <button
-                      key={role}
-                      onClick={() => { setActiveRole(role); setActiveCategoria("todas"); }}
-                      className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all cursor-pointer ${
-                        activeRole === role
-                          ? "bg-orange-50 text-[#E8501A]"
-                          : "text-gray-500 hover:bg-gray-50 hover:text-[#1A1A2E]"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-5 h-5 flex items-center justify-center">
-                          <i className={role === "estudante" ? "ri-graduation-cap-line" : "ri-building-2-line"}></i>
-                        </div>
-                        {roleLabels[role]}
-                      </div>
-                      {count > 0 && (
-                        <span className="text-xs font-bold bg-[#E8501A] text-white w-5 h-5 flex items-center justify-center rounded-full">
-                          {count}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Sessão Activa</p>
+              <div className="flex items-center gap-3 p-2 bg-orange-50 rounded-xl">
+                <div className="w-10 h-10 flex items-center justify-center rounded-full bg-[#E8501A] text-white">
+                  <i className={user?.role === "estudante" ? "ri-graduation-cap-line" : "ri-building-2-line"}></i>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-[#1A1A2E] truncate">{user?.nome}</p>
+                  <p className="text-[10px] text-[#E8501A] font-bold uppercase tracking-tight">
+                    {user?.role === "estudante" ? "Estudante" : "Empresa"}
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -286,10 +329,9 @@ export default function NotificacoesPage() {
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Categoria</p>
               <div className="flex flex-col gap-1">
                 {categorias.map((cat) => {
-                  const count = notifs.filter(
+                  const count = notifications.filter(
                     (n) =>
-                      n.role === activeRole &&
-                      (cat.value === "todas" || n.categoria === (cat.value as NotifCategoria))
+                      cat.value === "todas" || n.type === cat.value
                   ).length;
                   return (
                     <button
@@ -364,10 +406,10 @@ export default function NotificacoesPage() {
             {/* Summary bar */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
-                { label: "Total", value: notifs.filter((n) => n.role === activeRole).length, color: "text-[#1A1A2E]", bg: "bg-white", border: "border-gray-100" },
+                { label: "Total", value: totalCount, color: "text-[#1A1A2E]", bg: "bg-white", border: "border-gray-100" },
                 { label: "Não lidas", value: unreadCount, color: "text-[#E8501A]", bg: "bg-orange-50", border: "border-orange-100" },
-                { label: "Candidaturas", value: notifs.filter((n) => n.role === activeRole && n.categoria === "candidatura").length, color: "text-violet-600", bg: "bg-violet-50", border: "border-violet-100" },
-                { label: "Vagas novas", value: notifs.filter((n) => n.role === activeRole && n.categoria === "vaga").length, color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-100" },
+                { label: "Candidaturas", value: notifications.filter((n) => n.type === "candidatura").length, color: "text-violet-600", bg: "bg-violet-50", border: "border-violet-100" },
+                { label: "Vagas novas", value: notifications.filter((n) => n.type === "vaga").length, color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-100" },
               ].map((s) => (
                 <div key={s.label} className={`${s.bg} border ${s.border} rounded-2xl p-4`}>
                   <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
@@ -377,7 +419,13 @@ export default function NotificacoesPage() {
             </div>
 
             {/* Notifications grouped */}
-            {groups.length === 0 ? (
+            {loading ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="h-24 bg-white rounded-2xl border border-gray-100 animate-pulse"></div>
+                ))}
+              </div>
+            ) : groups.length === 0 ? (
               <div className="bg-white rounded-2xl border border-gray-100 flex flex-col items-center justify-center py-20 text-center px-6">
                 <div className="w-16 h-16 flex items-center justify-center bg-gray-100 rounded-full mb-4">
                   <i className="ri-notification-off-line text-gray-400 text-2xl"></i>
@@ -388,22 +436,13 @@ export default function NotificacoesPage() {
                     ? "Não tens notificações por ler nesta categoria."
                     : "Ainda não tens notificações nesta categoria."}
                 </p>
-                {showOnlyUnread && (
-                  <button
-                    onClick={() => setShowOnlyUnread(false)}
-                    className="mt-4 text-sm text-[#E8501A] font-medium hover:underline cursor-pointer"
-                  >
-                    Ver todas
-                  </button>
-                )}
               </div>
             ) : (
               groups.map((group) => (
-                <div key={group.label}>
-                  <div className="flex items-center gap-3 mb-3">
+                <div key={group.label} className="mb-8">
+                  <div className="flex items-center gap-3 mb-4">
                     <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">{group.label}</h4>
                     <div className="flex-1 h-px bg-gray-100"></div>
-                    <span className="text-xs text-gray-400">{group.items.length}</span>
                   </div>
                   <div className="flex flex-col gap-3">
                     {group.items.map((notif) => (

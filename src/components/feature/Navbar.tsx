@@ -18,14 +18,14 @@ export default function Navbar() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, signOut } = useAuth();
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   const unreadCount = notificacoesMock.filter((n) => n.role === "estudante" && !n.lida).length;
   const recentNotifs = notificacoesMock.filter((n) => n.role === "estudante").slice(0, 3);
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await signOut();
     setUserMenuOpen(false);
     navigate("/");
   };
@@ -200,10 +200,12 @@ export default function Navbar() {
                       <div className="w-4 h-4 flex items-center justify-center"><i className="ri-user-line text-gray-400"></i></div>
                       O meu perfil
                     </Link>
-                    <Link to="/dashboard" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-[#374151] hover:bg-gray-50 cursor-pointer transition-colors">
-                      <div className="w-4 h-4 flex items-center justify-center"><i className="ri-dashboard-line text-gray-400"></i></div>
-                      Dashboard
-                    </Link>
+                    {user.role === "empresa" && (
+                      <Link to="/dashboard" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-[#374151] hover:bg-gray-50 cursor-pointer transition-colors">
+                        <div className="w-4 h-4 flex items-center justify-center"><i className="ri-dashboard-line text-gray-400"></i></div>
+                        Dashboard
+                      </Link>
+                    )}
                     <Link to="/notificacoes" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-[#374151] hover:bg-gray-50 cursor-pointer transition-colors">
                       <div className="w-4 h-4 flex items-center justify-center"><i className="ri-notification-3-line text-gray-400"></i></div>
                       Notificações

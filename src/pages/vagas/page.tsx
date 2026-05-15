@@ -29,8 +29,51 @@ export default function VagasPage() {
     window.scrollTo(0, 0);
   }, []);
 
+  const [vagas, setVagas] = useState<Vaga[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchVagas = async () => {
+      const { supabase } = await import("@/lib/supabase");
+      const { data, error } = await supabase
+        .from('internships')
+        .select(`
+          *,
+          companies (
+            name,
+            logo_url
+          )
+        `)
+        .eq('status', 'active');
+
+      if (!error && data) {
+        // Map Supabase data to Vaga type
+        const mapped: Vaga[] = data.map(item => ({
+          id: item.id,
+          title: item.title,
+          company: item.companies?.name || "Empresa",
+          logo: item.companies?.logo_url || "",
+          area: item.area,
+          province: item.province,
+          duration: item.duration,
+          type: item.type || "Presencial",
+          sector: item.sector || "Geral",
+          description: item.description,
+          requirements: item.requirements ? item.requirements.split('\n') : [],
+          postedDaysAgo: Math.floor((new Date().getTime() - new Date(item.created_at).getTime()) / (1000 * 3600 * 24)),
+          applicants: item.applicants_count || 0,
+          featured: item.is_featured,
+        }));
+        setVagas(mapped);
+      }
+      setLoading(false);
+    };
+
+    fetchVagas();
+  }, []);
+
   const filtered = useMemo(() => {
-    let list = [...vagasMock];
+    let list = [...vagas];
 
     if (searchInput.trim()) {
       const q = searchInput.toLowerCase();
@@ -53,7 +96,8 @@ export default function VagasPage() {
     else if (sort === "destaque") list.sort((a, b) => Number(b.featured) - Number(a.featured));
 
     return list;
-  }, [filters, searchInput, sort]);
+  }, [vagas, filters, searchInput, sort]);
+
 
   const selectedVaga: Vaga | null = filtered.find((v) => v.id === selectedId) ?? null;
 
@@ -74,8 +118,8 @@ export default function VagasPage() {
       <Navbar />
 
       {/* Page header */}
-      <div className="bg-[#1A1A2E] pt-28 pb-10">
-        <div className="max-w-7xl mx-auto px-4 md:px-8">
+      <div className="bg-[#1A1A2E] relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 pt-32 pb-10">
           <span className="text-xs font-semibold uppercase tracking-widest text-[#E8501A] mb-3 block">
             Oportunidades
           </span>
@@ -169,7 +213,21 @@ export default function VagasPage() {
             <div className="flex gap-5">
               {/* List */}
               <div className={`flex flex-col gap-3 ${showDetail && selectedVaga ? "hidden lg:flex lg:w-[380px] xl:w-[420px] flex-shrink-0" : "w-full"}`}>
-                {filtered.length === 0 ? (
+                {loading ? (
+                  <div className="flex flex-col gap-3">
+                    {[1, 2, 3, 4].map(i => (
+                      <div key={i} className="bg-white rounded-2xl border border-gray-100 p-6 animate-pulse">
+                        <div className="flex gap-4">
+                          <div className="w-12 h-12 bg-gray-100 rounded-xl"></div>
+                          <div className="flex-1 space-y-3">
+                            <div className="h-4 bg-gray-100 rounded w-3/4"></div>
+                            <div className="h-3 bg-gray-100 rounded w-1/2"></div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : filtered.length === 0 ? (
                   <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
                     <div className="w-14 h-14 flex items-center justify-center mx-auto rounded-2xl bg-orange-50 mb-4">
                       <i className="ri-search-line text-[#E8501A] text-2xl"></i>
@@ -188,6 +246,7 @@ export default function VagasPage() {
                   ))
                 )}
               </div>
+
 
               {/* Detail panel - desktop sticky */}
               {showDetail && selectedVaga && (

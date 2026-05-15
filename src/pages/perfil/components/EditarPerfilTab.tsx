@@ -1,8 +1,10 @@
 import { useState } from "react";
-import type { EstudantePerfil } from "@/mocks/perfil";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/hooks/useAuth";
+import Swal from "sweetalert2";
 
 interface EditarPerfilTabProps {
-  perfil: EstudantePerfil;
+  perfil: any;
 }
 
 const areaOptions = [
@@ -10,63 +12,100 @@ const areaOptions = [
   "Saúde", "Gestão", "Comunicação", "Arquitectura", "Educação",
 ];
 
-const anoOptions = ["1.º Ano", "2.º Ano", "3.º Ano", "4.º Ano", "5.º Ano", "Pós-Graduação"];
+const anoOptions = ["1.º Ano", "2.º Ano", "3.º Ano", "4.º Ano", "5.º Ano", "Recém-Formado"];
 const provinciaOptions = [
   "Luanda", "Benguela", "Huambo", "Namibe", "Cabinda",
   "Malanje", "Huíla", "Cunene", "Bié", "Moxico",
 ];
 
-const idiomaOptions = ["Português", "Inglês", "Francês", "Espanhol", "Mandarim", "Árabe"];
-const nivelOptions = ["Básico", "Intermédio", "Avançado", "Nativo"];
+const sectorsOptions = [
+  "Telecomunicações", "Energia & Petróleo", "Banca & Finanças",
+  "Fintech & Pagamentos", "Media & Comunicação", "Saúde", "Seguros",
+  "Indústria & FMCG", "Construção & Infra-estrutura", "Educação",
+  "Tecnologia", "Consultoria", "Retalho & Comércio", "Agricultura",
+];
 
 export default function EditarPerfilTab({ perfil }: EditarPerfilTabProps) {
+  const { user } = useAuth();
   const [activeSection, setActiveSection] = useState("pessoal");
   const [saved, setSaved] = useState(false);
-  const [selectedAreas, setSelectedAreas] = useState<string[]>(perfil.areasInteresse);
-  const [habilidades, setHabilidades] = useState<string[]>(perfil.habilidades);
-  const [habilidadeInput, setHabilidadeInput] = useState("");
-  const [idiomas, setIdiomas] = useState(perfil.idiomas);
+  const [loading, setLoading] = useState(false);
+  
+  // Form state
+  const [formData, setFormData] = useState({ ...perfil });
 
-  const sections = [
+  const sections = user?.role === "estudante" ? [
     { id: "pessoal", label: "Dados Pessoais", icon: "ri-user-line" },
     { id: "academico", label: "Dados Académicos", icon: "ri-graduation-cap-line" },
-    { id: "competencias", label: "Competências", icon: "ri-tools-line" },
     { id: "social", label: "Redes Sociais", icon: "ri-links-line" },
+  ] : [
+    { id: "empresa", label: "Dados da Empresa", icon: "ri-building-line" },
+    { id: "social", label: "Links & Website", icon: "ri-global-line" },
   ];
 
-  const toggleArea = (area: string) => {
-    setSelectedAreas((prev) =>
-      prev.includes(area)
-        ? prev.filter((a) => a !== area)
-        : prev.length < 3
-        ? [...prev, area]
-        : prev
-    );
-  };
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
 
-  const addHabilidade = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && habilidadeInput.trim()) {
-      setHabilidades((prev) => [...prev, habilidadeInput.trim()]);
-      setHabilidadeInput("");
-    }
-  };
-
-  const removeHabilidade = (skill: string) => {
-    setHabilidades((prev) => prev.filter((s) => s !== skill));
-  };
-
-  const addIdioma = () => {
-    setIdiomas((prev) => [...prev, { nome: "Inglês", nivel: "Básico" }]);
-  };
-
-  const removeIdioma = (index: number) => {
-    setIdiomas((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    if (!user) return;
+    
+    setLoading(true);
+    const table = user.role === "estudante" ? "students" : "companies";
+    let updatedData = { ...formData };
+
+    // Handle File Upload if exists
+    if (avatarFile) {
+      const bucket = user.role === "estudante" ? "students" : "companies";
+      const fileExt = avatarFile.name.split('.').pop();
+      const fileName = `${user.id}_${Date.now()}.${fileExt}`;
+      const filePath = `profiles/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from(bucket)
+        .upload(filePath, avatarFile);
+
+      if (!uploadError) {
+        const { data: { publicUrl } } = supabase.storage
+          .from(bucket)
+          .getPublicUrl(filePath);
+        
+        if (user.role === "estudante") updatedData.avatar_url = publicUrl;
+        else updatedData.logo_url = publicUrl;
+      }
+    }
+    
+    const { error } = await supabase
+      .from(table)
+      .update(updatedData)
+      .eq("id", user.id);
+
+    if (!error) {
+      setSaved(true);
+      setTimeout(() => {
+        setSaved(false);
+        window.location.reload(); // Refresh to show new avatar everywhere
+      }, 2000);
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro ao salvar',
+        text: error.message,
+        confirmButtonColor: '#E8501A'
+      });
+    }
+    setLoading(false);
+  };
+
+  const handleChange = (key: string, value: any) => {
+    setFormData(prev => ({ ...prev, [key]: value }));
+  };
+
+  const toggleArea = (area: string) => {
+    const current = formData.areas_interest || [];
+    const updated = current.includes(area)
+      ? current.filter((a: string) => a !== area)
+      : current.length < 3 ? [...current, area] : current;
+    handleChange("areas_interest", updated);
   };
 
   return (
@@ -74,12 +113,11 @@ export default function EditarPerfilTab({ perfil }: EditarPerfilTabProps) {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="font-bold text-[#1A1A2E] text-lg">Editar Perfil</h2>
-          <p className="text-sm text-gray-500 mt-0.5">Mantém o teu perfil actualizado para mais visibilidade</p>
+          <p className="text-sm text-gray-500 mt-0.5">Mantém os teus dados actualizados</p>
         </div>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-5">
-        {/* Section nav */}
         <div className="flex lg:flex-col gap-2 lg:w-44 flex-shrink-0 overflow-x-auto lg:overflow-visible">
           {sections.map((s) => (
             <button
@@ -99,136 +137,125 @@ export default function EditarPerfilTab({ perfil }: EditarPerfilTabProps) {
           ))}
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSave} className="flex-1 bg-white rounded-2xl border border-gray-100 p-6">
-          {/* Dados Pessoais */}
-          {activeSection === "pessoal" && (
-            <div className="space-y-5">
-              <h3 className="font-semibold text-[#1A1A2E] text-sm border-b border-gray-100 pb-3">Dados Pessoais</h3>
-
-              {/* Avatar section */}
-              <div className="flex items-center gap-4">
-                <div className="relative">
-                  <img
-                    src={perfil.avatar}
-                    alt="Avatar"
-                    className="w-16 h-16 rounded-xl object-cover object-top border border-gray-100"
+        <form onSubmit={handleSave} className="flex-1 bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+          {/* Avatar / Logo Section */}
+          <div className="mb-8 flex flex-col items-center sm:flex-row sm:items-center gap-6 pb-8 border-b border-gray-50">
+            <div className="relative group">
+              <div className={`w-24 h-24 overflow-hidden border-4 border-gray-50 shadow-sm ${user?.role === "estudante" ? "rounded-full" : "rounded-3xl"}`}>
+                {(avatarFile || formData.avatar_url || formData.logo_url) ? (
+                  <img 
+                    src={avatarFile ? URL.createObjectURL(avatarFile) : (user?.role === "estudante" ? formData.avatar_url : formData.logo_url)} 
+                    className="w-full h-full object-cover" 
+                    alt="Perfil"
                   />
-                  <button
-                    type="button"
-                    className="absolute -bottom-1 -right-1 w-6 h-6 flex items-center justify-center bg-[#E8501A] text-white rounded-full cursor-pointer hover:bg-[#C73E0C] transition-colors"
-                  >
-                    <i className="ri-camera-line text-xs"></i>
-                  </button>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-[#1A1A2E]">Foto de Perfil</p>
-                  <p className="text-xs text-gray-400 mt-0.5">JPG ou PNG, máximo 2MB</p>
-                </div>
+                ) : (
+                  <div className="w-full h-full bg-orange-50 flex items-center justify-center text-[#E8501A]">
+                    <i className={user?.role === "estudante" ? "ri-user-line text-3xl" : "ri-building-line text-3xl"}></i>
+                  </div>
+                )}
               </div>
+              <label className="absolute inset-0 flex items-center justify-center bg-black/40 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                <i className="ri-camera-line text-xl"></i>
+                <input 
+                  type="file" 
+                  className="hidden" 
+                  accept="image/*"
+                  onChange={(e) => setAvatarFile(e.target.files?.[0] || null)}
+                />
+              </label>
+            </div>
+            <div className="text-center sm:text-left">
+              <h4 className="font-bold text-[#1A1A2E]">{user?.role === "estudante" ? "Foto de Perfil" : "Logotipo da Empresa"}</h4>
+              <p className="text-xs text-gray-500 mt-1">Recomendado: Quadrado, min. 400x400px</p>
+              <button 
+                type="button"
+                onClick={() => document.querySelector<HTMLInputElement>('input[type="file"]')?.click()}
+                className="mt-3 text-xs font-bold text-[#E8501A] hover:underline cursor-pointer"
+              >
+                Alterar imagem
+              </button>
+            </div>
+          </div>
 
+          {/* Estudante - Pessoal */}
+          {activeSection === "pessoal" && user?.role === "estudante" && (
+            <div className="space-y-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-[#1A1A2E] mb-1.5">Nome completo *</label>
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-medium text-[#1A1A2E] mb-1.5">Nome completo</label>
                   <input
                     type="text"
-                    defaultValue={perfil.name}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#E8501A] transition-colors"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-[#1A1A2E] mb-1.5">Email *</label>
-                  <input
-                    type="email"
-                    defaultValue={perfil.email}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#E8501A] transition-colors"
+                    value={formData.full_name || ""}
+                    onChange={(e) => handleChange("full_name", e.target.value)}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#E8501A]"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[#1A1A2E] mb-1.5">Telemóvel</label>
                   <input
                     type="tel"
-                    defaultValue={perfil.phone}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#E8501A] transition-colors"
+                    value={formData.phone || ""}
+                    onChange={(e) => handleChange("phone", e.target.value)}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#E8501A]"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[#1A1A2E] mb-1.5">Província</label>
-                  <select className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#E8501A] transition-colors appearance-none bg-white">
-                    {provinciaOptions.map((p) => (
-                      <option key={p} selected={p === perfil.province}>{p}</option>
-                    ))}
+                  <select 
+                    value={formData.province || ""}
+                    onChange={(e) => handleChange("province", e.target.value)}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#E8501A] bg-white"
+                  >
+                    <option value="">Seleccione</option>
+                    {provinciaOptions.map(p => <option key={p} value={p}>{p}</option>)}
                   </select>
                 </div>
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-[#1A1A2E] mb-1.5">Título Profissional</label>
-                <input
-                  type="text"
-                  defaultValue={perfil.headline}
-                  placeholder="Ex: Estudante de Engenharia · Apaixonado por IA"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#E8501A] transition-colors"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-[#1A1A2E] mb-1.5">Sobre mim</label>
+                <label className="block text-sm font-medium text-[#1A1A2E] mb-1.5">Bio</label>
                 <textarea
                   rows={4}
-                  maxLength={500}
-                  defaultValue={perfil.bio}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#E8501A] transition-colors resize-none"
+                  value={formData.bio || ""}
+                  onChange={(e) => handleChange("bio", e.target.value)}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#E8501A] resize-none"
                 ></textarea>
-                <p className="text-xs text-gray-400 mt-1 text-right">Máx. 500 caracteres</p>
               </div>
             </div>
           )}
 
-          {/* Dados Académicos */}
-          {activeSection === "academico" && (
+          {/* Estudante - Académico */}
+          {activeSection === "academico" && user?.role === "estudante" && (
             <div className="space-y-5">
-              <h3 className="font-semibold text-[#1A1A2E] text-sm border-b border-gray-100 pb-3">Dados Académicos</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium text-[#1A1A2E] mb-1.5">Universidade / Instituto *</label>
+                <div>
+                  <label className="block text-sm font-medium text-[#1A1A2E] mb-1.5">Curso</label>
                   <input
                     type="text"
-                    defaultValue={perfil.universidade}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#E8501A] transition-colors"
+                    value={formData.course || ""}
+                    onChange={(e) => handleChange("course", e.target.value)}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#E8501A]"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[#1A1A2E] mb-1.5">Curso *</label>
-                  <input
-                    type="text"
-                    defaultValue={perfil.curso}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#E8501A] transition-colors"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-[#1A1A2E] mb-1.5">Ano Académico *</label>
-                  <select className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#E8501A] transition-colors appearance-none bg-white">
-                    {anoOptions.map((a) => (
-                      <option key={a} selected={a === perfil.anoAcademico}>{a}</option>
-                    ))}
+                  <label className="block text-sm font-medium text-[#1A1A2E] mb-1.5">Ano Académico</label>
+                  <select 
+                    value={formData.academic_year || ""}
+                    onChange={(e) => handleChange("academic_year", e.target.value)}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#E8501A] bg-white"
+                  >
+                    {anoOptions.map(a => <option key={a} value={a}>{a}</option>)}
                   </select>
                 </div>
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-[#1A1A2E] mb-2">
-                  Áreas de Interesse{" "}
-                  <span className="text-gray-400 font-normal">(máx. 3)</span>
-                </label>
+                <label className="block text-sm font-medium text-[#1A1A2E] mb-3">Áreas de Interesse (máx. 3)</label>
                 <div className="flex flex-wrap gap-2">
-                  {areaOptions.map((area) => (
+                  {areaOptions.map(area => (
                     <button
-                      key={area}
-                      type="button"
+                      key={area} type="button"
                       onClick={() => toggleArea(area)}
-                      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all cursor-pointer whitespace-nowrap ${
-                        selectedAreas.includes(area)
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                        (formData.areas_interest || []).includes(area)
                           ? "bg-[#E8501A] text-white"
                           : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                       }`}
@@ -237,155 +264,112 @@ export default function EditarPerfilTab({ perfil }: EditarPerfilTabProps) {
                     </button>
                   ))}
                 </div>
-                <p className="text-xs text-gray-400 mt-2">{selectedAreas.length}/3 áreas seleccionadas</p>
               </div>
             </div>
           )}
 
-          {/* Competências */}
-          {activeSection === "competencias" && (
-            <div className="space-y-6">
-              <h3 className="font-semibold text-[#1A1A2E] text-sm border-b border-gray-100 pb-3">Competências & Idiomas</h3>
-
+          {/* Empresa - Geral */}
+          {activeSection === "empresa" && user?.role === "empresa" && (
+            <div className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-[#1A1A2E] mb-1.5">
-                  Habilidades Técnicas
-                  <span className="text-gray-400 font-normal ml-1">(pressiona Enter para adicionar)</span>
-                </label>
+                <label className="block text-sm font-medium text-[#1A1A2E] mb-1.5">Nome da Empresa</label>
                 <input
                   type="text"
-                  value={habilidadeInput}
-                  onChange={(e) => setHabilidadeInput(e.target.value)}
-                  onKeyDown={addHabilidade}
-                  placeholder="Ex: React, Python, Figma..."
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#E8501A] transition-colors"
+                  value={formData.name || ""}
+                  onChange={(e) => handleChange("name", e.target.value)}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#E8501A]"
                 />
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {habilidades.map((skill) => (
-                    <span
-                      key={skill}
-                      className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-gray-100 text-[#374151] rounded-lg font-medium"
-                    >
-                      {skill}
-                      <button
-                        type="button"
-                        onClick={() => removeHabilidade(skill)}
-                        className="w-3 h-3 flex items-center justify-center hover:text-red-500 cursor-pointer transition-colors"
-                      >
-                        <i className="ri-close-line text-xs"></i>
-                      </button>
-                    </span>
-                  ))}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-[#1A1A2E] mb-1.5">Sector</label>
+                  <select 
+                    value={formData.sector || ""}
+                    onChange={(e) => handleChange("sector", e.target.value)}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#E8501A] bg-white"
+                  >
+                    <option value="">Seleccione</option>
+                    {sectorsOptions.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-[#1A1A2E] mb-1.5">Província</label>
+                  <select 
+                    value={formData.province || ""}
+                    onChange={(e) => handleChange("province", e.target.value)}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#E8501A] bg-white"
+                  >
+                    <option value="">Seleccione</option>
+                    {provinciaOptions.map(p => <option key={p} value={p}>{p}</option>)}
+                  </select>
                 </div>
               </div>
-
               <div>
-                <div className="flex items-center justify-between mb-3">
-                  <label className="text-sm font-medium text-[#1A1A2E]">Idiomas</label>
-                  <button
-                    type="button"
-                    onClick={addIdioma}
-                    className="text-xs text-[#E8501A] font-medium hover:underline cursor-pointer"
-                  >
-                    + Adicionar
-                  </button>
-                </div>
-                <div className="space-y-3">
-                  {idiomas.map((idioma, idx) => (
-                    <div key={idx} className="flex items-center gap-3">
-                      <select
-                        value={idioma.nome}
-                        onChange={(e) =>
-                          setIdiomas((prev) =>
-                            prev.map((item, i) => (i === idx ? { ...item, nome: e.target.value } : item))
-                          )
-                        }
-                        className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#E8501A] transition-colors appearance-none bg-white"
-                      >
-                        {idiomaOptions.map((o) => <option key={o}>{o}</option>)}
-                      </select>
-                      <select
-                        value={idioma.nivel}
-                        onChange={(e) =>
-                          setIdiomas((prev) =>
-                            prev.map((item, i) => (i === idx ? { ...item, nivel: e.target.value } : item))
-                          )
-                        }
-                        className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#E8501A] transition-colors appearance-none bg-white"
-                      >
-                        {nivelOptions.map((n) => <option key={n}>{n}</option>)}
-                      </select>
-                      <button
-                        type="button"
-                        onClick={() => removeIdioma(idx)}
-                        className="w-8 h-8 flex items-center justify-center hover:bg-red-50 hover:text-red-500 text-gray-400 rounded-lg cursor-pointer transition-colors"
-                      >
-                        <i className="ri-delete-bin-line text-sm"></i>
-                      </button>
-                    </div>
-                  ))}
-                </div>
+                <label className="block text-sm font-medium text-[#1A1A2E] mb-1.5">Descrição da Empresa</label>
+                <textarea
+                  rows={4}
+                  value={formData.description || ""}
+                  onChange={(e) => handleChange("description", e.target.value)}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#E8501A] resize-none"
+                ></textarea>
               </div>
             </div>
           )}
 
-          {/* Redes Sociais */}
+          {/* Geral - Social */}
           {activeSection === "social" && (
             <div className="space-y-5">
-              <h3 className="font-semibold text-[#1A1A2E] text-sm border-b border-gray-100 pb-3">Redes Sociais & Links</h3>
-              {[
-                { label: "LinkedIn", icon: "ri-linkedin-box-line", placeholder: "linkedin.com/in/o-teu-perfil", default: perfil.linkedin },
-                { label: "GitHub", icon: "ri-github-line", placeholder: "github.com/utilizador", default: "" },
-                { label: "Portfolio / Website", icon: "ri-global-line", placeholder: "https://meu-portfolio.ao", default: "" },
-                { label: "Behance", icon: "ri-behance-line", placeholder: "behance.net/utilizador", default: "" },
-              ].map((field) => (
-                <div key={field.label}>
-                  <label className="block text-sm font-medium text-[#1A1A2E] mb-1.5">{field.label}</label>
-                  <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden focus-within:border-[#E8501A] transition-colors">
-                    <div className="w-11 h-11 flex items-center justify-center border-r border-gray-200 bg-gray-50">
-                      <i className={`${field.icon} text-gray-400`}></i>
-                    </div>
+              {user?.role === "estudante" ? (
+                <div>
+                  <label className="block text-sm font-medium text-[#1A1A2E] mb-1.5">LinkedIn</label>
+                  <input
+                    type="url"
+                    value={formData.linkedin_url || ""}
+                    onChange={(e) => handleChange("linkedin_url", e.target.value)}
+                    placeholder="https://linkedin.com/in/perfil"
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#E8501A]"
+                  />
+                </div>
+              ) : (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-[#1A1A2E] mb-1.5">Website</label>
                     <input
                       type="url"
-                      defaultValue={field.default}
-                      placeholder={field.placeholder}
-                      className="flex-1 px-4 py-2.5 text-sm focus:outline-none bg-transparent"
+                      value={formData.website || ""}
+                      onChange={(e) => handleChange("website", e.target.value)}
+                      placeholder="https://www.empresa.ao"
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#E8501A]"
                     />
                   </div>
-                </div>
-              ))}
-
-              <div className="bg-amber-50 border border-amber-100 rounded-xl p-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <i className="ri-information-line text-amber-600"></i>
+                  <div>
+                    <label className="block text-sm font-medium text-[#1A1A2E] mb-1.5">Logo URL</label>
+                    <input
+                      type="url"
+                      value={formData.logo_url || ""}
+                      onChange={(e) => handleChange("logo_url", e.target.value)}
+                      placeholder="https://link-da-imagem.png"
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#E8501A]"
+                    />
                   </div>
-                  <p className="text-xs text-amber-700 leading-relaxed">
-                    O LinkedIn é muito valorizado pelas empresas parceiras. Certifica-te de que o teu perfil está actualizado antes de te candidatares.
-                  </p>
-                </div>
-              </div>
+                </>
+              )}
             </div>
           )}
 
-          {/* Save button */}
           <div className="flex items-center justify-between mt-6 pt-5 border-t border-gray-100">
             {saved && (
               <div className="flex items-center gap-2 text-sm text-emerald-600 font-medium">
-                <div className="w-5 h-5 flex items-center justify-center">
-                  <i className="ri-check-double-line"></i>
-                </div>
-                Alterações guardadas com sucesso!
+                <i className="ri-check-double-line"></i> Guardado com sucesso!
               </div>
             )}
-            {!saved && <div></div>}
+            <div />
             <button
               type="submit"
-              className="flex items-center gap-2 bg-[#E8501A] text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-[#C73E0C] transition-colors cursor-pointer whitespace-nowrap"
+              disabled={loading}
+              className="flex items-center gap-2 bg-[#E8501A] text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-[#C73E0C] transition-colors disabled:opacity-50"
             >
-              <div className="w-4 h-4 flex items-center justify-center">
-                <i className="ri-save-line"></i>
-              </div>
+              {loading ? <i className="ri-loader-4-line animate-spin"></i> : <i className="ri-save-line"></i>}
               Guardar alterações
             </button>
           </div>
@@ -394,3 +378,4 @@ export default function EditarPerfilTab({ perfil }: EditarPerfilTabProps) {
     </div>
   );
 }
+

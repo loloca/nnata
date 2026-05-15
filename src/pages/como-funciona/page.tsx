@@ -181,17 +181,17 @@ export default function ComoFuncionaPage() {
       <Navbar />
 
       {/* ── HERO ── */}
-      <section className="relative pt-20 overflow-hidden">
+      <section className="relative overflow-hidden">
         <div className="absolute inset-0 -z-0">
           <img
             src="https://readdy.ai/api/search-image?query=modern%20Angola%20university%20students%20working%20collaborating%20laptops%20technology%20bright%20office%20professional%20environment%20warm%20light%20photography%20editorial&width=1400&height=600&seq=cf-hero1&orientation=landscape"
             alt="Como funciona"
             className="w-full h-full object-cover object-top"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#1A1A2E]/92 via-[#1A1A2E]/80 to-[#1A1A2E]/50"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-[#1A1A2E]/95 via-[#1A1A2E]/85 to-[#1A1A2E]/60"></div>
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-8 py-24 md:py-32">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-8 pt-32 pb-24 md:pb-32">
           <div className="max-w-2xl w-full">
             <span className="inline-block text-xs font-semibold uppercase tracking-widest text-[#E8501A] mb-4 bg-[#E8501A]/10 px-3 py-1.5 rounded-full">
               Guia Completo

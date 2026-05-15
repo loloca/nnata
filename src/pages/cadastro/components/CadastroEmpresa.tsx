@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import StepIndicator from "./StepIndicator";
 import { provinces } from "@/mocks/landing";
 
@@ -33,6 +34,24 @@ const initial: FieldE = {
   website: "", phone: "", description: "",
   size: "", areasHiring: [], linkedin: "",
 };
+
+const InputRow = ({ label, id, type = "text", value, onChange, placeholder, error }: {
+  label: string; id: string; type?: string; value: string;
+  onChange: (v: string) => void; placeholder?: string; error?: string;
+}) => (
+  <div>
+    <label htmlFor={id} className="block text-xs font-semibold text-[#1A1A2E] mb-1.5">{label}</label>
+    <input
+      id={id} type={type} value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      className={`w-full px-4 py-3 border rounded-xl text-sm focus:outline-none transition-colors placeholder-gray-300 ${
+        error ? "border-red-300 bg-red-50" : "border-gray-200 focus:border-[#E8501A]"
+      }`}
+    />
+    {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+  </div>
+);
 
 export default function CadastroEmpresa() {
   const [step, setStep] = useState(0);
@@ -72,11 +91,67 @@ export default function CadastroEmpresa() {
     return Object.keys(errs).length === 0;
   };
 
-  const next = () => {
+  const next = async () => {
     if (!validateStep()) return;
-    if (step < 2) { setStep(s => s + 1); return; }
+    if (step < 2) { 
+      setStep(s => s + 1); 
+      return; 
+    }
+    
     setLoading(true);
-    setTimeout(() => { setLoading(false); setStep(3); }, 1200);
+    setErrors({});
+    
+    const { supabase } = await import("@/lib/supabase");
+    
+    try {
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: data.email.trim().toLowerCase(),
+        password: data.password,
+        options: {
+          data: {
+            full_name: data.companyName.trim(),
+            role: 'empresa'
+          }
+        }
+      });
+
+      if (authError) throw authError;
+
+      if (authData.user) {
+        const { error: dbError } = await supabase
+          .from('companies')
+          .insert({
+            id: authData.user.id,
+            name: data.companyName.trim(),
+            email: data.email.trim().toLowerCase(),
+            sector: data.sector,
+            province: data.province,
+            website: data.website?.trim() || null,
+            description: data.description?.trim() || null,
+          });
+
+        if (dbError) {
+          console.error("Erro na Base de Dados:", dbError);
+          throw new Error(`Erro na Base de Dados: ${dbError.message} (${dbError.code})`);
+        }
+        
+        setStep(3);
+      }
+    } catch (err: any) {
+      console.error("Erro completo:", err);
+      const msg = err.message || "Erro desconhecido ao criar conta.";
+      setErrors({ email: msg });
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro no Registro',
+        text: msg,
+        confirmButtonColor: '#E8501A',
+        confirmButtonText: 'Tentar novamente'
+      });
+    } finally {
+      setLoading(false);
+    }
+
   };
 
   if (step === 3) {
@@ -108,24 +183,6 @@ export default function CadastroEmpresa() {
     );
   }
 
-  const InputRow = ({ label, id, type = "text", value, onChange, placeholder, error }: {
-    label: string; id: string; type?: string; value: string;
-    onChange: (v: string) => void; placeholder?: string; error?: string;
-  }) => (
-    <div>
-      <label htmlFor={id} className="block text-xs font-semibold text-[#1A1A2E] mb-1.5">{label}</label>
-      <input
-        id={id} type={type} value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className={`w-full px-4 py-3 border rounded-xl text-sm focus:outline-none transition-colors placeholder-gray-300 ${
-          error ? "border-red-300 bg-red-50" : "border-gray-200 focus:border-[#E8501A]"
-        }`}
-      />
-      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
-    </div>
-  );
-
   return (
     <div>
       <StepIndicator steps={STEPS.slice(0, 3)} current={step} />
@@ -151,7 +208,6 @@ export default function CadastroEmpresa() {
           </div>
           <InputRow label="Confirmar palavra-passe" id="confirm" type="password" value={data.confirmPassword} onChange={v => set("confirmPassword", v)} placeholder="Repete a palavra-passe" error={errors.confirmPassword} />
 
-          {/* Benefits info box */}
           <div className="bg-orange-50 border border-orange-100 rounded-xl p-4 mt-2">
             <p className="text-xs font-semibold text-[#E8501A] mb-2 flex items-center gap-1.5">
               <i className="ri-star-line"></i> Benefícios para Empresas
@@ -245,7 +301,6 @@ export default function CadastroEmpresa() {
           </div>
           <InputRow label="Página LinkedIn da empresa" id="linkedin" value={data.linkedin} onChange={v => set("linkedin", v)} placeholder="linkedin.com/company/empresa" />
 
-          {/* Summary */}
           <div className="bg-[#FAFAFA] rounded-xl p-4 border border-gray-100">
             <p className="text-xs font-semibold text-[#1A1A2E] mb-3">Resumo do registo</p>
             <div className="space-y-2">
@@ -266,7 +321,6 @@ export default function CadastroEmpresa() {
         </div>
       )}
 
-      {/* Navigation */}
       <div className="flex gap-3 mt-7">
         {step > 0 && (
           <button onClick={() => setStep(s => s - 1)}

@@ -5,251 +5,125 @@ interface CandidaturasTabProps {
   candidaturas: Candidatura[];
 }
 
-const statusConfig: Record<
-  Candidatura["status"],
-  { color: string; bg: string; icon: string; label: string }
-> = {
-  "Em análise": { color: "text-amber-700", bg: "bg-amber-50", icon: "ri-time-line", label: "Em análise" },
-  Aprovado: { color: "text-emerald-700", bg: "bg-emerald-50", icon: "ri-check-double-line", label: "Aprovado" },
-  Entrevista: { color: "text-violet-700", bg: "bg-violet-50", icon: "ri-calendar-check-line", label: "Entrevista" },
-  Recusado: { color: "text-red-600", bg: "bg-red-50", icon: "ri-close-circle-line", label: "Recusado" },
-  Pendente: { color: "text-gray-600", bg: "bg-gray-100", icon: "ri-pause-circle-line", label: "Pendente" },
-};
-
-const timelineSteps = ["Pendente", "Em análise", "Entrevista", "Aprovado"];
-
-function CandidaturaDetail({
-  candidatura,
-  onClose,
-}: {
-  candidatura: Candidatura;
-  onClose: () => void;
-}) {
-  const config = statusConfig[candidatura.status];
-  const currentStep = timelineSteps.indexOf(
-    candidatura.status === "Recusado" ? "Recusado" : candidatura.status
-  );
-
-  return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div
-        className="bg-white rounded-2xl max-w-lg w-full overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
-          <h3 className="font-bold text-[#1A1A2E]">Detalhes da Candidatura</h3>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-lg cursor-pointer">
-            <i className="ri-close-line text-[#374151]"></i>
-          </button>
-        </div>
-
-        <div className="p-6">
-          {/* Company header */}
-          <div className="flex items-start gap-4">
-            <div className="w-14 h-14 flex-shrink-0 rounded-xl overflow-hidden border border-gray-100">
-              <img src={candidatura.companyLogo} alt={candidatura.company} className="w-full h-full object-cover object-top" />
-            </div>
-            <div className="flex-1">
-              <h4 className="font-bold text-[#1A1A2E]">{candidatura.vagaTitle}</h4>
-              <p className="text-sm text-gray-500 mt-0.5">{candidatura.company}</p>
-              <div className="flex items-center gap-2 mt-2 flex-wrap">
-                <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md">{candidatura.area}</span>
-                <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md">{candidatura.type}</span>
-                <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md">{candidatura.province}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Status badge */}
-          <div className={`flex items-center gap-2 mt-5 px-4 py-3 rounded-xl ${config.bg}`}>
-            <div className="w-5 h-5 flex items-center justify-center">
-              <i className={`${config.icon} ${config.color}`}></i>
-            </div>
-            <div>
-              <p className={`text-sm font-semibold ${config.color}`}>Estado: {config.label}</p>
-              <p className="text-xs text-gray-400 mt-0.5">Candidatura enviada em {candidatura.appliedDate}</p>
-            </div>
-          </div>
-
-          {/* Progress timeline (only for non-rejected) */}
-          {candidatura.status !== "Recusado" && (
-            <div className="mt-5">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Progresso</p>
-              <div className="flex items-center gap-0">
-                {timelineSteps.map((step, idx) => {
-                  const isCompleted = idx <= currentStep;
-                  const isActive = idx === currentStep;
-                  return (
-                    <div key={step} className="flex items-center flex-1 last:flex-none">
-                      <div className="flex flex-col items-center">
-                        <div
-                          className={`w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold transition-all ${
-                            isCompleted
-                              ? "bg-[#E8501A] text-white"
-                              : "bg-gray-100 text-gray-400"
-                          } ${isActive ? "ring-2 ring-[#E8501A]/30" : ""}`}
-                        >
-                          {isCompleted ? <i className="ri-check-line text-xs"></i> : idx + 1}
-                        </div>
-                        <span className={`text-xs mt-1 whitespace-nowrap ${isCompleted ? "text-[#E8501A] font-medium" : "text-gray-400"}`}>
-                          {step}
-                        </span>
-                      </div>
-                      {idx < timelineSteps.length - 1 && (
-                        <div className={`h-0.5 flex-1 mb-4 transition-all ${idx < currentStep ? "bg-[#E8501A]" : "bg-gray-100"}`}></div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Feedback */}
-          {candidatura.feedback && (
-            <div className="mt-5 p-4 bg-gray-50 rounded-xl border border-gray-100">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Mensagem da Empresa</p>
-              <p className="text-sm text-[#374151] leading-relaxed">{candidatura.feedback}</p>
-            </div>
-          )}
-        </div>
-
-        <div className="px-6 pb-5 flex gap-3">
-          <button
-            onClick={onClose}
-            className="flex-1 py-2.5 border border-gray-200 text-[#374151] rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors cursor-pointer"
-          >
-            Fechar
-          </button>
-          <a
-            href="/vagas"
-            className="flex-1 py-2.5 bg-[#E8501A] text-white rounded-xl text-sm font-medium hover:bg-[#C73E0C] transition-colors cursor-pointer text-center"
-          >
-            Ver mais vagas
-          </a>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function CandidaturasTab({ candidaturas }: CandidaturasTabProps) {
-  const [selected, setSelected] = useState<Candidatura | null>(null);
-  const [filterStatus, setFilterStatus] = useState<string>("Todos");
+  const [filter, setFilter] = useState<string>("todas");
 
-  const statusFilters = ["Todos", "Em análise", "Entrevista", "Aprovado", "Recusado", "Pendente"];
-  const filtered = filterStatus === "Todos" ? candidaturas : candidaturas.filter((c) => c.status === filterStatus);
-
-  const counts = {
-    total: candidaturas.length,
-    aprovados: candidaturas.filter((c) => c.status === "Aprovado").length,
-    entrevistas: candidaturas.filter((c) => c.status === "Entrevista").length,
-    analise: candidaturas.filter((c) => c.status === "Em análise").length,
+  const statusColors = {
+    "Pendente": "bg-yellow-50 text-yellow-600 border-yellow-100",
+    "Em análise": "bg-blue-50 text-blue-600 border-blue-100",
+    "Entrevista": "bg-violet-50 text-violet-600 border-violet-100",
+    "Aceite": "bg-emerald-50 text-emerald-600 border-emerald-100",
+    "Rejeitado": "bg-rose-50 text-rose-600 border-rose-100",
   };
 
+  const filtered = filter === "todas" ? candidaturas : candidaturas.filter(c => c.status === filter);
+
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
+    <div className="animate-in fade-in duration-700">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-6">
         <div>
-          <h2 className="font-bold text-[#1A1A2E] text-lg">Candidaturas Enviadas</h2>
-          <p className="text-sm text-gray-500 mt-0.5">{counts.total} candidaturas no total</p>
+          <h2 className="text-3xl font-black text-[#1A1A2E] leading-tight">Minhas Candidaturas</h2>
+          <p className="text-gray-400 font-bold uppercase tracking-[0.2em] text-[10px] mt-2">
+            Acompanha o estado das tuas aplicações em tempo real
+          </p>
         </div>
-        <a
-          href="/vagas"
-          className="flex items-center gap-2 border border-[#E8501A] text-[#E8501A] px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-orange-50 transition-colors cursor-pointer whitespace-nowrap"
-        >
-          <div className="w-4 h-4 flex items-center justify-center">
-            <i className="ri-search-line"></i>
-          </div>
-          Explorar vagas
-        </a>
       </div>
 
-      {/* Summary cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-        {[
-          { label: "Total", value: counts.total, color: "text-[#1A1A2E]", bg: "bg-gray-50", border: "border-gray-100" },
-          { label: "Em análise", value: counts.analise, color: "text-amber-700", bg: "bg-amber-50", border: "border-amber-100" },
-          { label: "Entrevistas", value: counts.entrevistas, color: "text-violet-700", bg: "bg-violet-50", border: "border-violet-100" },
-          { label: "Aprovados", value: counts.aprovados, color: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-100" },
-        ].map((s) => (
-          <div key={s.label} className={`${s.bg} border ${s.border} rounded-xl p-4`}>
-            <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
-            <p className="text-xs text-gray-500 mt-0.5">{s.label}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Filter pills */}
-      <div className="flex flex-wrap gap-2 mb-5">
-        {statusFilters.map((f) => (
+      {/* Status Filter */}
+      <div className="flex flex-wrap gap-2 mb-10 bg-white p-2 rounded-[24px] w-fit border-2 border-gray-50 shadow-sm">
+        {["todas", "Pendente", "Em análise", "Entrevista", "Aceite", "Rejeitado"].map((f) => (
           <button
             key={f}
-            onClick={() => setFilterStatus(f)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer whitespace-nowrap ${
-              filterStatus === f
-                ? "bg-[#E8501A] text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            onClick={() => setFilter(f)}
+            className={`px-6 py-3 rounded-[18px] text-[10px] font-black uppercase tracking-widest transition-all ${
+              filter === f ? "bg-[#1A1A2E] text-white shadow-lg shadow-gray-900/20" : "text-gray-400 hover:text-[#1A1A2E]"
             }`}
           >
             {f}
-            {f !== "Todos" && (
-              <span className="ml-1 opacity-70">
-                ({candidaturas.filter((c) => c.status === f).length})
-              </span>
-            )}
           </button>
         ))}
       </div>
 
-      {/* Candidaturas list */}
-      <div className="flex flex-col gap-3">
-        {filtered.map((cand) => {
-          const config = statusConfig[cand.status];
-          return (
-            <div
-              key={cand.id}
-              onClick={() => setSelected(cand)}
-              className="bg-white rounded-2xl border border-gray-100 hover:border-orange-200 transition-all cursor-pointer p-4 flex items-center gap-4"
-            >
-              <div className="w-12 h-12 flex-shrink-0 rounded-xl overflow-hidden border border-gray-100">
-                <img src={cand.companyLogo} alt={cand.company} className="w-full h-full object-cover object-top" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h4 className="font-semibold text-[#1A1A2E] text-sm leading-snug truncate">{cand.vagaTitle}</h4>
-                <p className="text-xs text-gray-500 mt-0.5">{cand.company} · {cand.province} · {cand.type}</p>
-                <p className="text-xs text-gray-400 mt-1">Candidatura em {cand.appliedDate}</p>
-              </div>
-              <div className="flex-shrink-0 flex flex-col items-end gap-2">
-                <span className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full ${config.bg} ${config.color}`}>
-                  <div className="w-3 h-3 flex items-center justify-center">
-                    <i className={`${config.icon} text-xs`}></i>
-                  </div>
-                  {config.label}
-                </span>
-                {cand.feedback && (
-                  <span className="text-xs text-gray-400 flex items-center gap-1">
-                    <i className="ri-message-2-line"></i>
-                    Feedback
-                  </span>
-                )}
-              </div>
-            </div>
-          );
-        })}
-
-        {filtered.length === 0 && (
-          <div className="text-center py-16 text-gray-400">
-            <div className="w-16 h-16 flex items-center justify-center bg-gray-100 rounded-full mx-auto mb-3">
-              <i className="ri-briefcase-line text-2xl"></i>
-            </div>
-            <p className="text-sm font-medium">Nenhuma candidatura encontrada</p>
-            <p className="text-xs mt-1">Tenta outro filtro ou candidata-te a novas vagas</p>
+      {candidaturas.length === 0 ? (
+        <div className="bg-white rounded-[40px] border-4 border-dashed border-gray-100 p-20 text-center">
+          <div className="w-24 h-24 bg-gray-50 rounded-[32px] flex items-center justify-center text-gray-300 mx-auto mb-8">
+            <i className="ri-folder-open-line text-4xl"></i>
           </div>
-        )}
-      </div>
+          <h3 className="font-black text-[#1A1A2E] text-xl">Nenhuma candidatura ainda</h3>
+          <p className="text-gray-400 mt-2 font-medium max-w-xs mx-auto">Explora as vagas disponíveis e começa a construir o teu futuro hoje.</p>
+          <a 
+            href="/vagas" 
+            className="mt-8 inline-block bg-[#E8501A] text-white px-10 py-4 rounded-2xl text-xs font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-orange-900/20"
+          >
+            Ver Vagas Disponíveis
+          </a>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {filtered.map((c) => (
+            <div
+              key={c.id}
+              className="group bg-white rounded-[40px] border-2 border-gray-50 p-8 hover:border-[#E8501A]/20 hover:shadow-2xl hover:shadow-orange-900/5 transition-all duration-500"
+            >
+              <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
+                <div className="flex items-center gap-6">
+                  <div className="w-20 h-20 rounded-[28px] bg-gray-50 flex items-center justify-center overflow-hidden border-2 border-gray-50 group-hover:border-white transition-all shadow-sm">
+                    {c.companyLogo ? (
+                      <img src={c.companyLogo} alt={c.company} className="w-full h-full object-cover" />
+                    ) : (
+                      <i className="ri-building-line text-3xl text-gray-300"></i>
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="font-black text-[#1A1A2E] text-xl leading-tight group-hover:text-[#E8501A] transition-colors">
+                      {c.vagaTitle}
+                    </h3>
+                    <div className="flex flex-wrap items-center gap-4 mt-3">
+                      <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                        <i className="ri-building-4-line"></i>
+                        {c.company}
+                      </span>
+                      <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                        <i className="ri-map-pin-line"></i>
+                        {c.province}
+                      </span>
+                      <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                        <i className="ri-calendar-line"></i>
+                        {c.appliedDate}
+                      </span>
+                    </div>
+                  </div>
+                </div>
 
-      {selected && <CandidaturaDetail candidatura={selected} onClose={() => setSelected(null)} />}
+                <div className="flex flex-col sm:flex-row items-center gap-6 w-full lg:w-auto pt-6 lg:pt-0 border-t lg:border-t-0 border-gray-50">
+                  <div className="text-center sm:text-right">
+                    <span className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border ${statusColors[c.status as keyof typeof statusColors] || 'bg-gray-50 text-gray-500 border-gray-100'}`}>
+                      {c.status}
+                    </span>
+                  </div>
+                  <button className="w-full sm:w-auto flex items-center justify-center gap-3 bg-gray-50 hover:bg-[#1A1A2E] hover:text-white text-[#1A1A2E] px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all">
+                    Ver Detalhes
+                  </button>
+                </div>
+              </div>
+
+              {c.feedback && (
+                <div className="mt-8 pt-8 border-t border-gray-50 bg-gray-50/50 -mx-8 -mb-8 px-8 pb-8 rounded-b-[40px]">
+                  <div className="flex gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-[#E8501A] shadow-sm flex-shrink-0">
+                      <i className="ri-message-3-line text-lg"></i>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Feedback da Empresa</p>
+                      <p className="text-sm text-gray-600 font-medium leading-relaxed italic">"{c.feedback}"</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

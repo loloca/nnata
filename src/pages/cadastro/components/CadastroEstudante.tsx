@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import StepIndicator from "./StepIndicator";
 import { areas, provinces } from "@/mocks/landing";
 
@@ -33,6 +34,27 @@ const initial: Field = {
   fullName: "", phone: "", province: "", bio: "",
   course: "", year: "", areasInterest: [], linkedin: "",
 };
+
+const InputRow = ({ label, id, type = "text", value, onChange, placeholder, error, right }: {
+  label: string; id: string; type?: string; value: string;
+  onChange: (v: string) => void; placeholder?: string; error?: string; right?: React.ReactNode;
+}) => (
+  <div>
+    <label htmlFor={id} className="block text-xs font-semibold text-[#1A1A2E] mb-1.5">{label}</label>
+    <div className="relative">
+      <input
+        id={id} type={type} value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className={`w-full px-4 py-3 border rounded-xl text-sm focus:outline-none transition-colors placeholder-gray-300 ${
+          error ? "border-red-300 bg-red-50" : "border-gray-200 focus:border-[#E8501A]"
+        }`}
+      />
+      {right}
+    </div>
+    {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+  </div>
+);
 
 export default function CadastroEstudante() {
   const [step, setStep] = useState(0);
@@ -75,33 +97,71 @@ export default function CadastroEstudante() {
     return Object.keys(errs).length === 0;
   };
 
-  const next = () => {
+  const next = async () => {
     if (!validateStep()) return;
-    if (step < 2) { setStep(s => s + 1); return; }
+    if (step < 2) { 
+      setStep(s => s + 1); 
+      return; 
+    }
+    
     setLoading(true);
-    setTimeout(() => { setLoading(false); setStep(3); }, 1200);
-  };
+    setErrors({});
+    
+    const { supabase } = await import("@/lib/supabase");
+    
+    try {
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: data.email.trim().toLowerCase(),
+        password: data.password,
+        options: {
+          data: {
+            full_name: data.fullName.trim(),
+            role: 'estudante'
+          }
+        }
+      });
 
-  const InputRow = ({ label, id, type = "text", value, onChange, placeholder, error, right }: {
-    label: string; id: string; type?: string; value: string;
-    onChange: (v: string) => void; placeholder?: string; error?: string; right?: React.ReactNode;
-  }) => (
-    <div>
-      <label htmlFor={id} className="block text-xs font-semibold text-[#1A1A2E] mb-1.5">{label}</label>
-      <div className="relative">
-        <input
-          id={id} type={type} value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          className={`w-full px-4 py-3 border rounded-xl text-sm focus:outline-none transition-colors placeholder-gray-300 ${
-            error ? "border-red-300 bg-red-50" : "border-gray-200 focus:border-[#E8501A]"
-          }`}
-        />
-        {right}
-      </div>
-      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
-    </div>
-  );
+      if (authError) throw authError;
+
+      if (authData.user) {
+        const { error: dbError } = await supabase
+          .from('students')
+          .insert({
+            id: authData.user.id,
+            full_name: data.fullName.trim(),
+            email: data.email.trim().toLowerCase(),
+            phone: data.phone?.trim() || null,
+            province: data.province,
+            bio: data.bio?.trim() || null,
+            course: data.course,
+            academic_year: data.year,
+            areas_interest: data.areasInterest || [],
+            linkedin_url: data.linkedin?.trim() || null
+          });
+
+        if (dbError) {
+          console.error("Erro na Base de Dados:", dbError);
+          throw new Error(`Erro na Base de Dados: ${dbError.message} (${dbError.code})`);
+        }
+        
+        setStep(3);
+      }
+    } catch (err: any) {
+      console.error("Erro completo:", err);
+      const msg = err.message || "Erro desconhecido ao criar conta.";
+      setErrors({ email: msg });
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro no Cadastro',
+        text: msg,
+        confirmButtonColor: '#E8501A',
+        confirmButtonText: 'Tentar novamente'
+      });
+    } finally {
+      setLoading(false);
+    }
+
+  };
 
   if (step === 3) {
     return (
@@ -245,7 +305,6 @@ export default function CadastroEstudante() {
         </div>
       )}
 
-      {/* Navigation */}
       <div className="flex gap-3 mt-7">
         {step > 0 && (
           <button

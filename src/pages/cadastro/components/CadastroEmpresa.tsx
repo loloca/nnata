@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import StepIndicator from "./StepIndicator";
+import PasswordStrength from "./PasswordStrength";
 import { provinces } from "@/mocks/landing";
 
 const STEPS = ["Conta", "Empresa", "Preferências", "Pronto!"];
@@ -58,6 +59,7 @@ export default function CadastroEmpresa() {
   const [data, setData] = useState<FieldE>(initial);
   const [showPass, setShowPass] = useState(false);
   const [errors, setErrors] = useState<Partial<FieldE>>({});
+  const [isPassStrong, setIsPassStrong] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -79,7 +81,8 @@ export default function CadastroEmpresa() {
     const errs: Partial<FieldE> = {};
     if (step === 0) {
       if (!data.email) errs.email = "Obrigatório";
-      if (!data.password || data.password.length < 6) errs.password = "Mínimo 6 caracteres";
+      if (!data.password) errs.password = "Obrigatório";
+      else if (!isPassStrong) errs.password = "A palavra-passe deve ser forte";
       if (data.password !== data.confirmPassword) errs.confirmPassword = "As palavras-passe não coincidem";
     }
     if (step === 1) {
@@ -197,13 +200,14 @@ export default function CadastroEmpresa() {
               <input
                 type={showPass ? "text" : "password"} value={data.password}
                 onChange={(e) => set("password", e.target.value)}
-                placeholder="Mínimo 6 caracteres"
+                placeholder="Introduz uma palavra-passe forte"
                 className={`w-full px-4 pr-10 py-3 border rounded-xl text-sm focus:outline-none transition-colors placeholder-gray-300 ${errors.password ? "border-red-300 bg-red-50" : "border-gray-200 focus:border-[#E8501A]"}`}
               />
               <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer">
                 <i className={`${showPass ? "ri-eye-off-line" : "ri-eye-line"} text-base`}></i>
               </button>
             </div>
+            <PasswordStrength password={data.password} onValidationChange={setIsPassStrong} />
             {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password}</p>}
           </div>
           <InputRow label="Confirmar palavra-passe" id="confirm" type="password" value={data.confirmPassword} onChange={v => set("confirmPassword", v)} placeholder="Repete a palavra-passe" error={errors.confirmPassword} />

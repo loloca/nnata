@@ -23,6 +23,7 @@ export default function FeaturedJobsSection() {
             logo_url
           )
         `)
+        .eq('status', 'Activa')
         .order('created_at', { ascending: false })
         .limit(3);
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import Swal from "sweetalert2";
 
@@ -16,7 +16,59 @@ export default function PerfilEmpresaDashboard({ empresa: initialEmpresa }: Perf
   const [empresa, setEmpresa] = useState(initialEmpresa);
   const [activeSection, setActiveSection] = useState("info");
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState<"logo" | "cover" | null>(null);
   const [saved, setSaved] = useState(false);
+
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
+
+  const handleUpload = async (file: File, type: "logo" | "cover") => {
+    setUploading(type);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${empresa.id}_${type}_${Date.now()}.${fileExt}`;
+      const filePath = `profiles/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('applications')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('applications')
+        .getPublicUrl(filePath);
+
+      // Update local state
+      const updatedFields = type === "logo" ? { logo_url: publicUrl } : { cover_url: publicUrl };
+      setEmpresa(prev => ({ ...prev, ...updatedFields }));
+
+      // Save to DB immediately
+      const { error: dbError } = await supabase
+        .from('companies')
+        .update(updatedFields)
+        .eq('id', empresa.id);
+
+      if (dbError) throw dbError;
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Sucesso',
+        text: `${type === "logo" ? "Logotipo" : "Capa"} actualizada com sucesso!`,
+        timer: 1500,
+        showConfirmButton: false
+      });
+    } catch (err) {
+      console.error(err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro no upload',
+        text: 'Não foi possível carregar a imagem.'
+      });
+    } finally {
+      setUploading(null);
+    }
+  };
 
   const sections = [
     { id: "info", label: "Informações Gerais", icon: "ri-building-2-line" },
@@ -72,23 +124,50 @@ export default function PerfilEmpresaDashboard({ empresa: initialEmpresa }: Perf
 
       <div className="bg-white rounded-[32px] border border-gray-100 overflow-hidden mb-8 shadow-sm">
         <div className="relative h-48 bg-gradient-to-r from-[#1A1A2E] to-[#2D2D44]">
+          <input 
+            type="file" 
+            ref={coverInputRef} 
+            className="hidden" 
+            accept="image/*"
+            onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0], "cover")}
+          />
           {empresa.cover_url && (
             <img src={empresa.cover_url} alt="Capa" className="w-full h-full object-cover opacity-60" />
           )}
-          <button className="absolute bottom-6 right-6 flex items-center gap-2 bg-white/20 hover:bg-white/40 text-white px-5 py-2.5 rounded-2xl font-bold text-xs transition-all backdrop-blur-md cursor-pointer border border-white/30">
-            <i className="ri-camera-line text-base"></i> Alterar Capa
+          <button 
+            onClick={() => coverInputRef.current?.click()}
+            disabled={uploading === "cover"}
+            className="absolute bottom-6 right-6 flex items-center gap-2 bg-white/20 hover:bg-white/40 text-white px-5 py-2.5 rounded-2xl font-bold text-xs transition-all backdrop-blur-md cursor-pointer border border-white/30 disabled:opacity-50"
+          >
+            {uploading === "cover" ? (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            ) : <i className="ri-camera-line text-base"></i>}
+            {uploading === "cover" ? "A carregar..." : "Alterar Capa"}
           </button>
         </div>
         <div className="px-10 pb-8 flex items-end gap-6 -mt-12">
           <div className="relative group">
+            <input 
+              type="file" 
+              ref={logoInputRef} 
+              className="hidden" 
+              accept="image/*"
+              onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0], "logo")}
+            />
             <div className="w-32 h-32 rounded-[32px] overflow-hidden border-8 border-white bg-white shadow-xl flex items-center justify-center">
-              {empresa.logo_url ? (
+              {uploading === "logo" ? (
+                <div className="w-10 h-10 border-4 border-[#E8501A] border-t-transparent rounded-full animate-spin"></div>
+              ) : empresa.logo_url ? (
                 <img src={empresa.logo_url} alt={empresa.name} className="w-full h-full object-cover" />
               ) : (
                 <span className="text-4xl font-black text-[#E8501A]">{empresa.name[0]}</span>
               )}
             </div>
-            <button className="absolute -bottom-2 -right-2 w-10 h-10 flex items-center justify-center bg-[#E8501A] text-white rounded-2xl cursor-pointer hover:bg-[#C73E0C] transition-all shadow-lg shadow-orange-900/20">
+            <button 
+              onClick={() => logoInputRef.current?.click()}
+              disabled={uploading === "logo"}
+              className="absolute -bottom-2 -right-2 w-10 h-10 flex items-center justify-center bg-[#E8501A] text-white rounded-2xl cursor-pointer hover:bg-[#C73E0C] transition-all shadow-lg shadow-orange-900/20 disabled:opacity-50"
+            >
               <i className="ri-camera-line text-lg"></i>
             </button>
           </div>

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
 import Swal from "sweetalert2";
+import SearchableSelect from "@/components/common/SearchableSelect";
 
 interface EditarPerfilTabProps {
   perfil: any;
@@ -12,10 +13,55 @@ const areaOptions = [
   "Saúde", "Gestão", "Comunicação", "Arquitectura", "Educação",
 ];
 
-const anoOptions = ["1.º Ano", "2.º Ano", "3.º Ano", "4.º Ano", "5.º Ano", "Recém-Formado"];
+const anoSuperiorOptions = ["1.º Ano", "2.º Ano", "3.º Ano", "4.º Ano", "5.º Ano", "Recém-Formado"];
+const anoMedioOptions = ["10.ª Classe", "11.ª Classe", "12.ª Classe", "13.ª Classe"];
 const provinciaOptions = [
   "Luanda", "Benguela", "Huambo", "Namibe", "Cabinda",
   "Malanje", "Huíla", "Cunene", "Bié", "Moxico",
+];
+
+const medioCourses = [
+  "Técnico de Informática", "Técnico de Programação", "Técnico de Redes Informáticas", "Técnico de Sistemas Informáticos",
+  "Técnico de Base de Dados", "Técnico de Cibersegurança", "Técnico de Multimédia", "Técnico de Design Gráfico",
+  "Técnico de Electrónica", "Técnico de Telecomunicações", "Técnico de Electricidade Industrial", "Técnico de Electromecânica",
+  "Técnico de Mecânica Industrial", "Técnico de Mecânica Auto", "Técnico de Mecatrónica", "Técnico de Frio e Climatização",
+  "Técnico de Energias Renováveis", "Técnico de Automação Industrial", "Técnico de Instrumentação Industrial", "Técnico de Soldadura",
+  "Técnico de Construção Civil", "Técnico de Obras Públicas", "Técnico de Topografia", "Técnico de Desenho de Construção Civil",
+  "Técnico de Hidráulica", "Técnico de Saneamento", "Técnico de Urbanismo", "Técnico de Carpintaria", "Técnico de Canalização",
+  "Técnico de Pintura de Construção", "Técnico de Geologia", "Técnico de Minas", "Técnico de Petróleo e Gás", "Técnico de Perfuração Petrolífera",
+  "Técnico de Refinação", "Técnico de Metalurgia", "Técnico de Química Industrial", "Técnico de Ambiente", "Técnico de Laboratório Industrial",
+  "Técnico de Segurança Industrial", "Técnico de Administração Pública", "Técnico de Administração e Gestão", "Técnico de Contabilidade",
+  "Técnico de Finanças", "Técnico de Comércio", "Técnico de Gestão Empresarial", "Técnico de Recursos Humanos", "Técnico de Marketing",
+  "Técnico de Secretariado", "Técnico de Estatística", "Técnico de Planeamento", "Técnico de Gestão Bancária", "Técnico de Logística",
+  "Técnico de Procurement", "Técnico de Seguros", "Técnico de Empreendedorismo", "Técnico de Comunicação Social", "Técnico de Jornalismo",
+  "Técnico de Produção de Eventos", "Técnico de Relações Públicas", "Técnico de Turismo", "Técnico de Hotelaria", "Técnico de Restauração",
+  "Técnico de Cozinha", "Técnico de Pastelaria", "Técnico de Guia Turístico", "Técnico Agrário", "Técnico de Produção Animal",
+  "Técnico de Veterinária", "Técnico Florestal", "Técnico de Irrigação", "Técnico de Agropecuária", "Técnico de Pescas", "Técnico de Aquicultura",
+  "Técnico de Agricultura Sustentável", "Técnico Médio de Enfermagem", "Técnico de Análises Clínicas", "Técnico de Farmácia",
+  "Técnico de Radiologia", "Técnico de Saúde Ambiental", "Técnico de Fisioterapia", "Técnico de Nutrição", "Técnico de Saúde Pública",
+  "Técnico de Estomatologia", "Técnico de Hemoterapia", "Técnico de Música", "Técnico de Artes Visuais", "Técnico de Teatro",
+  "Técnico de Dança", "Técnico de Moda", "Técnico de Design de Interiores", "Técnico de Educação Física", "Técnico de Desporto",
+  "Técnico de Arbitragem", "Técnico de Segurança no Trabalho", "Técnico de Protecção Civil", "Técnico de Bombeiros", "Técnico Aduaneiro",
+  "Técnico de Transporte Marítimo", "Técnico de Aviação Civil"
+];
+
+const superiorCourses = [
+  "Medicina", "Enfermagem", "Farmácia", "Odontologia", "Psicologia", "Fisioterapia", "Nutrição", "Saúde Pública",
+  "Análises Clínicas", "Radiologia", "Direito", "Relações Internacionais", "Ciência Política", "Administração Pública",
+  "Sociologia", "Filosofia", "História", "Antropologia", "Serviço Social", "Criminologia", "Gestão de Empresas",
+  "Contabilidade e Auditoria", "Economia", "Finanças", "Gestão Bancária", "Marketing", "Recursos Humanos", "Gestão Comercial",
+  "Comércio Exterior", "Logística", "Empreendedorismo", "Gestão de Projectos", "Engenharia Informática", "Engenharia de Software",
+  "Ciência da Computação", "Sistemas de Informação", "Engenharia de Redes", "Cibersegurança", "Inteligência Artificial",
+  "Ciência de Dados", "Engenharia Electrotécnica", "Engenharia Electrónica", "Engenharia Mecânica", "Engenharia Civil",
+  "Engenharia Química", "Engenharia Ambiental", "Engenharia Industrial", "Engenharia de Minas", "Engenharia Petrolífera",
+  "Engenharia Agronómica", "Engenharia Florestal", "Engenharia Hidráulica", "Engenharia de Energias Renováveis",
+  "Arquitectura e Urbanismo", "Urbanismo", "Design Industrial", "Matemática", "Física", "Química", "Biologia", "Geologia",
+  "Estatística", "Actuariado", "Língua Portuguesa", "Língua Inglesa", "Língua Francesa", "Linguística", "Tradução e Interpretação",
+  "Jornalismo", "Comunicação Social", "Cinema e Audiovisual", "Publicidade e Propaganda", "Relações Públicas", "Turismo e Hotelaria",
+  "Gastronomia", "Educação Física", "Ciências do Desporto", "Treino Desportivo", "Arbitragem Desportiva", "Música", "Teatro",
+  "Dança", "Artes Visuais", "Moda e Estilismo", "Design Gráfico", "Design de Interiores", "Pedagogia", "Ciências da Educação",
+  "Educação de Infância", "Ensino Primário", "Matemática Educacional", "Física Educacional", "Química Educacional",
+  "Biologia Educacional", "Geografia", "Gestão Ambiental", "Oceanografia", "Meteorologia", "Aviação Civil", "Gestão Portuária e Marítima"
 ];
 
 const sectorsOptions = [
@@ -55,7 +101,7 @@ export default function EditarPerfilTab({ perfil }: EditarPerfilTabProps) {
 
     // Handle File Upload if exists
     if (avatarFile) {
-      const bucket = user.role === "estudante" ? "students" : "companies";
+      const bucket = "applications"; // Consistent bucket for all profile assets
       const fileExt = avatarFile.name.split('.').pop();
       const fileName = `${user.id}_${Date.now()}.${fileExt}`;
       const filePath = `profiles/${fileName}`;
@@ -71,6 +117,13 @@ export default function EditarPerfilTab({ perfil }: EditarPerfilTabProps) {
         
         if (user.role === "estudante") updatedData.avatar_url = publicUrl;
         else updatedData.logo_url = publicUrl;
+
+        // Update Auth metadata so Navbar reflects change immediately
+        await supabase.auth.updateUser({
+          data: { avatar_url: publicUrl }
+        });
+      } else {
+        console.error("Upload error:", uploadError);
       }
     }
     
@@ -227,23 +280,42 @@ export default function EditarPerfilTab({ perfil }: EditarPerfilTabProps) {
           {activeSection === "academico" && user?.role === "estudante" && (
             <div className="space-y-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="sm:col-span-2">
+                   <label className="block text-sm font-medium text-[#1A1A2E] mb-1.5">Nível de Ensino</label>
+                   <div className="flex bg-gray-50 rounded-xl p-1 border border-gray-100">
+                     {["Médio", "Superior"].map(level => (
+                       <button
+                         key={level} type="button"
+                         onClick={() => handleChange("education_level", level)}
+                         className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${
+                           (formData.education_level || "Superior") === level 
+                             ? "bg-white text-[#1A1A2E] shadow-sm" 
+                             : "text-gray-400"
+                         }`}
+                       >
+                         Ensino {level}
+                       </button>
+                     ))}
+                   </div>
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-[#1A1A2E] mb-1.5">Curso</label>
-                  <input
-                    type="text"
+                  <SearchableSelect
+                    options={(formData.education_level === "Médio" ? medioCourses : superiorCourses)}
                     value={formData.course || ""}
-                    onChange={(e) => handleChange("course", e.target.value)}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#E8501A]"
+                    onChange={(val) => handleChange("course", val)}
+                    placeholder="Pesquisa o teu curso"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[#1A1A2E] mb-1.5">Ano Académico</label>
+                  <label className="block text-sm font-medium text-[#1A1A2E] mb-1.5">Ano / Classe</label>
                   <select 
                     value={formData.academic_year || ""}
                     onChange={(e) => handleChange("academic_year", e.target.value)}
                     className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#E8501A] bg-white"
                   >
-                    {anoOptions.map(a => <option key={a} value={a}>{a}</option>)}
+                    <option value="">Seleccione</option>
+                    {(formData.education_level === "Médio" ? anoMedioOptions : anoSuperiorOptions).map(a => <option key={a} value={a}>{a}</option>)}
                   </select>
                 </div>
               </div>

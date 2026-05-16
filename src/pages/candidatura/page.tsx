@@ -37,6 +37,13 @@ export default function CandidaturaPage() {
 
   const [errors, setErrors] = useState<Partial<Record<keyof typeof form, string>>>({});
 
+  // Security Check: Only students can apply
+  useEffect(() => {
+    if (!authLoading && user && user.role !== 'estudante') {
+      navigate('/dashboard');
+    }
+  }, [user, authLoading, navigate]);
+
   // Fetch vaga and student profile
   useEffect(() => {
     const fetchData = async () => {
@@ -66,7 +73,7 @@ export default function CandidaturaPage() {
             email: sData.email || "",
             telefone: sData.phone || "",
             provincia: sData.province || "",
-            universidade: "—", // Not in schema, can be added to bio or specific field
+            universidade: "—", 
             curso: sData.course || "",
             anoAcademico: sData.academic_year || "",
             linkedin: sData.linkedin_url || "",
@@ -76,8 +83,13 @@ export default function CandidaturaPage() {
       setLoadingVaga(false);
     };
 
-    fetchData();
-  }, [vagaId, user]);
+    if (user && user.role === 'estudante') {
+      fetchData();
+    } else if (!user && !authLoading) {
+       // if not logged in, fetch data anyway but don't pre-fill
+       fetchData();
+    }
+  }, [vagaId, user, authLoading]);
 
   const update = (field: keyof typeof form, value: string | boolean) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -159,6 +171,14 @@ export default function CandidaturaPage() {
       // Update count
       await supabase.rpc('increment_applicants', { row_id: vagaId });
 
+      // 3. Create Notification for Company
+      await supabase.from('notifications').insert({
+        user_id: vaga.company_id,
+        title: 'Nova Candidatura Recebida',
+        content: `${user.nome} candidatou-se para a vaga de ${vaga.title}`,
+        type: 'candidatura'
+      });
+
       setStatus("success");
     } catch (err) {
       console.error(err);
@@ -218,24 +238,58 @@ export default function CandidaturaPage() {
       <div className="pt-32 pb-20 px-4 md:px-8 max-w-6xl mx-auto">
         
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-           <div>
-              <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">
-                <Link to="/vagas" className="hover:text-[#E8501A]">Vagas</Link>
-                <i className="ri-arrow-right-s-line"></i>
-                <span className="text-[#1A1A2E]">{vaga.title}</span>
+        {/* Header Section */}
+        <div className="relative bg-white rounded-[40px] border-2 border-gray-100 p-8 md:p-12 mb-12 overflow-hidden shadow-xl shadow-gray-200/40">
+           {/* Background Decoration */}
+           <div className="absolute top-0 right-0 w-64 h-64 bg-orange-50 rounded-full -mr-20 -mt-20 blur-3xl opacity-50"></div>
+           
+           <div className="flex flex-col lg:flex-row items-center justify-between gap-12 relative z-10">
+              <div className="flex-1 text-center lg:text-left">
+                 <div className="flex items-center justify-center lg:justify-start gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6">
+                   <Link to="/vagas" className="hover:text-[#E8501A] transition-colors">Vagas</Link>
+                   <i className="ri-arrow-right-s-line"></i>
+                   <span className="text-[#1A1A2E]">{vaga.title}</span>
+                 </div>
+                 <h1 className="text-4xl lg:text-5xl font-black text-[#1A1A2E] leading-tight mb-4">
+                   Candidatura ao <span className="text-[#E8501A]">Estágio</span>
+                 </h1>
+                 <p className="text-gray-500 text-lg font-medium max-w-xl mx-auto lg:mx-0">
+                   Estás a um passo de começar a tua jornada profissional. Preenche os dados abaixo com atenção.
+                 </p>
+                 
+                 <div className="mt-10 flex flex-wrap items-center justify-center lg:justify-start gap-4">
+                    <div className="bg-gray-50 px-6 py-4 rounded-3xl border border-gray-100 flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-2xl overflow-hidden border-2 border-white shadow-sm bg-white">
+                        <img src={vaga.companies?.logo_url} alt={vaga.companies?.name} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="text-left">
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Empresa</p>
+                        <p className="text-sm font-bold text-[#1A1A2E]">{vaga.companies?.name}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex -space-x-3">
+                       {[1,2,3].map(i => (
+                         <div key={i} className="w-10 h-10 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center overflow-hidden">
+                           <img src={`https://i.pravatar.cc/100?img=${i+10}`} alt="User" />
+                         </div>
+                       ))}
+                       <div className="w-10 h-10 rounded-full border-2 border-white bg-[#E8501A] text-white flex items-center justify-center text-[10px] font-bold">
+                         +50
+                       </div>
+                    </div>
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Já se candidataram</p>
+                 </div>
               </div>
-              <h1 className="text-4xl font-black text-[#1A1A2E] leading-tight">Candidatura ao Estágio</h1>
-              <p className="text-gray-500 mt-2 font-medium">Estás a um passo de começar a tua jornada profissional.</p>
-           </div>
-           <div className="bg-white p-4 rounded-3xl border-2 border-gray-100 flex items-center gap-4 shadow-sm">
-             <div className="w-12 h-12 rounded-2xl overflow-hidden border border-gray-100">
-               <img src={vaga.companies?.logo_url} alt={vaga.companies?.name} className="w-full h-full object-cover" />
-             </div>
-             <div>
-               <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Empresa</p>
-               <p className="text-sm font-bold text-[#1A1A2E]">{vaga.companies?.name}</p>
-             </div>
+
+              <div className="w-full lg:w-2/5 max-w-[400px] relative group">
+                 <div className="absolute inset-0 bg-orange-200 rounded-full blur-3xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
+                 <img 
+                   src="/hero/candidatura.png" 
+                   alt="Candidatura ao Estágio" 
+                   className="w-full h-auto relative z-10 drop-shadow-[0_20px_50px_rgba(232,80,26,0.3)] animate-float"
+                 />
+              </div>
            </div>
         </div>
 

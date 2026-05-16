@@ -25,7 +25,7 @@ interface VagaDetailProps {
 
 export default function VagaDetail({ vaga, onClose }: VagaDetailProps) {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [saved, setSaved] = useState(false);
 
   const handleApply = () => {
@@ -33,6 +33,11 @@ export default function VagaDetail({ vaga, onClose }: VagaDetailProps) {
       navigate("/login", { state: { from: `/candidatura/${vaga?.id}` } });
       return;
     }
+    
+    if (user?.role === "empresa") {
+      return;
+    }
+    
     navigate(`/candidatura/${vaga?.id}`);
   };
 
@@ -209,14 +214,21 @@ export default function VagaDetail({ vaga, onClose }: VagaDetailProps) {
           </button>
           <button
             onClick={handleApply}
+            disabled={isAuthenticated && user?.role === "empresa"}
             className={`flex-1 font-semibold py-2.5 rounded-xl transition-colors text-sm cursor-pointer whitespace-nowrap flex items-center justify-center gap-2 ${
               isAuthenticated
-                ? "bg-[#E8501A] hover:bg-[#C73E0C] text-white"
+                ? user?.role === "empresa"
+                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                  : "bg-[#E8501A] hover:bg-[#C73E0C] text-white"
                 : "bg-[#1A1A2E] hover:bg-[#2D2D44] text-white"
             }`}
           >
-            <i className={isAuthenticated ? "ri-send-plane-line" : "ri-lock-line"}></i>
-            {isAuthenticated ? "Candidatar-me" : "Entrar para Candidatar"}
+            <i className={isAuthenticated ? (user?.role === "empresa" ? "ri-error-warning-line" : "ri-send-plane-line") : "ri-lock-line"}></i>
+            {isAuthenticated 
+              ? user?.role === "empresa" 
+                ? "Acesso para Estudantes" 
+                : "Candidatar-me" 
+              : "Entrar para Candidatar"}
           </button>
         </div>
       </div>

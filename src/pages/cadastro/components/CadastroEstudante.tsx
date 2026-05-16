@@ -2,18 +2,58 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import StepIndicator from "./StepIndicator";
+import PasswordStrength from "./PasswordStrength";
+import SearchableSelect from "@/components/common/SearchableSelect";
 import { areas, provinces } from "@/mocks/landing";
 
 const STEPS = ["Conta", "Perfil", "Académico", "Pronto!"];
 
-const courses = [
-  "Engenharia Informática", "Engenharia Civil", "Engenharia Electrónica",
-  "Gestão de Empresas", "Gestão de Recursos Humanos", "Finanças e Contabilidade",
-  "Marketing", "Direito", "Medicina", "Enfermagem", "Arquitectura",
-  "Comunicação Social", "Educação", "Matemática",
+const medioCourses = [
+  "Técnico de Informática", "Técnico de Programação", "Técnico de Redes Informáticas", "Técnico de Sistemas Informáticos",
+  "Técnico de Base de Dados", "Técnico de Cibersegurança", "Técnico de Multimédia", "Técnico de Design Gráfico",
+  "Técnico de Electrónica", "Técnico de Telecomunicações", "Técnico de Electricidade Industrial", "Técnico de Electromecânica",
+  "Técnico de Mecânica Industrial", "Técnico de Mecânica Auto", "Técnico de Mecatrónica", "Técnico de Frio e Climatização",
+  "Técnico de Energias Renováveis", "Técnico de Automação Industrial", "Técnico de Instrumentação Industrial", "Técnico de Soldadura",
+  "Técnico de Construção Civil", "Técnico de Obras Públicas", "Técnico de Topografia", "Técnico de Desenho de Construção Civil",
+  "Técnico de Hidráulica", "Técnico de Saneamento", "Técnico de Urbanismo", "Técnico de Carpintaria", "Técnico de Canalização",
+  "Técnico de Pintura de Construção", "Técnico de Geologia", "Técnico de Minas", "Técnico de Petróleo e Gás", "Técnico de Perfuração Petrolífera",
+  "Técnico de Refinação", "Técnico de Metalurgia", "Técnico de Química Industrial", "Técnico de Ambiente", "Técnico de Laboratório Industrial",
+  "Técnico de Segurança Industrial", "Técnico de Administração Pública", "Técnico de Administração e Gestão", "Técnico de Contabilidade",
+  "Técnico de Finanças", "Técnico de Comércio", "Técnico de Gestão Empresarial", "Técnico de Recursos Humanos", "Técnico de Marketing",
+  "Técnico de Secretariado", "Técnico de Estatística", "Técnico de Planeamento", "Técnico de Gestão Bancária", "Técnico de Logística",
+  "Técnico de Procurement", "Técnico de Seguros", "Técnico de Empreendedorismo", "Técnico de Comunicação Social", "Técnico de Jornalismo",
+  "Técnico de Produção de Eventos", "Técnico de Relações Públicas", "Técnico de Turismo", "Técnico de Hotelaria", "Técnico de Restauração",
+  "Técnico de Cozinha", "Técnico de Pastelaria", "Técnico de Guia Turístico", "Técnico Agrário", "Técnico de Produção Animal",
+  "Técnico de Veterinária", "Técnico Florestal", "Técnico de Irrigação", "Técnico de Agropecuária", "Técnico de Pescas", "Técnico de Aquicultura",
+  "Técnico de Agricultura Sustentável", "Técnico Médio de Enfermagem", "Técnico de Análises Clínicas", "Técnico de Farmácia",
+  "Técnico de Radiologia", "Técnico de Saúde Ambiental", "Técnico de Fisioterapia", "Técnico de Nutrição", "Técnico de Saúde Pública",
+  "Técnico de Estomatologia", "Técnico de Hemoterapia", "Técnico de Música", "Técnico de Artes Visuais", "Técnico de Teatro",
+  "Técnico de Dança", "Técnico de Moda", "Técnico de Design de Interiores", "Técnico de Educação Física", "Técnico de Desporto",
+  "Técnico de Arbitragem", "Técnico de Segurança no Trabalho", "Técnico de Protecção Civil", "Técnico de Bombeiros", "Técnico Aduaneiro",
+  "Técnico de Transporte Marítimo", "Técnico de Aviação Civil"
 ];
 
-const years = ["1.º Ano", "2.º Ano", "3.º Ano", "4.º Ano", "5.º Ano", "Recém-Formado"];
+const superiorCourses = [
+  "Medicina", "Enfermagem", "Farmácia", "Odontologia", "Psicologia", "Fisioterapia", "Nutrição", "Saúde Pública",
+  "Análises Clínicas", "Radiologia", "Direito", "Relações Internacionais", "Ciência Política", "Administração Pública",
+  "Sociologia", "Filosofia", "História", "Antropologia", "Serviço Social", "Criminologia", "Gestão de Empresas",
+  "Contabilidade e Auditoria", "Economia", "Finanças", "Gestão Bancária", "Marketing", "Recursos Humanos", "Gestão Comercial",
+  "Comércio Exterior", "Logística", "Empreendedorismo", "Gestão de Projectos", "Engenharia Informática", "Engenharia de Software",
+  "Ciência da Computação", "Sistemas de Informação", "Engenharia de Redes", "Cibersegurança", "Inteligência Artificial",
+  "Ciência de Dados", "Engenharia Electrotécnica", "Engenharia Electrónica", "Engenharia Mecânica", "Engenharia Civil",
+  "Engenharia Química", "Engenharia Ambiental", "Engenharia Industrial", "Engenharia de Minas", "Engenharia Petrolífera",
+  "Engenharia Agronómica", "Engenharia Florestal", "Engenharia Hidráulica", "Engenharia de Energias Renováveis",
+  "Arquitectura e Urbanismo", "Urbanismo", "Design Industrial", "Matemática", "Física", "Química", "Biologia", "Geologia",
+  "Estatística", "Actuariado", "Língua Portuguesa", "Língua Inglesa", "Língua Francesa", "Linguística", "Tradução e Interpretação",
+  "Jornalismo", "Comunicação Social", "Cinema e Audiovisual", "Publicidade e Propaganda", "Relações Públicas", "Turismo e Hotelaria",
+  "Gastronomia", "Educação Física", "Ciências do Desporto", "Treino Desportivo", "Arbitragem Desportiva", "Música", "Teatro",
+  "Dança", "Artes Visuais", "Moda e Estilismo", "Design Gráfico", "Design de Interiores", "Pedagogia", "Ciências da Educação",
+  "Educação de Infância", "Ensino Primário", "Matemática Educacional", "Física Educacional", "Química Educacional",
+  "Biologia Educacional", "Geografia", "Gestão Ambiental", "Oceanografia", "Meteorologia", "Aviação Civil", "Gestão Portuária e Marítima"
+];
+
+const higherEducationYears = ["1.º Ano", "2.º Ano", "3.º Ano", "4.º Ano", "5.º Ano", "Recém-Formado"];
+const middleEducationYears = ["10.ª Classe", "11.ª Classe", "12.ª Classe", "13.ª Classe"];
 
 interface Field {
   email: string;
@@ -25,6 +65,7 @@ interface Field {
   bio: string;
   course: string;
   year: string;
+  educationLevel: "Médio" | "Superior";
   areasInterest: string[];
   linkedin: string;
 }
@@ -32,7 +73,7 @@ interface Field {
 const initial: Field = {
   email: "", password: "", confirmPassword: "",
   fullName: "", phone: "", province: "", bio: "",
-  course: "", year: "", areasInterest: [], linkedin: "",
+  course: "", year: "", educationLevel: "Superior", areasInterest: [], linkedin: "",
 };
 
 const InputRow = ({ label, id, type = "text", value, onChange, placeholder, error, right }: {
@@ -61,6 +102,7 @@ export default function CadastroEstudante() {
   const [data, setData] = useState<Field>(initial);
   const [showPass, setShowPass] = useState(false);
   const [errors, setErrors] = useState<Partial<Field>>({});
+  const [isPassStrong, setIsPassStrong] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -82,7 +124,8 @@ export default function CadastroEstudante() {
     const errs: Partial<Field> = {};
     if (step === 0) {
       if (!data.email) errs.email = "Obrigatório";
-      if (!data.password || data.password.length < 6) errs.password = "Mínimo 6 caracteres";
+      if (!data.password) errs.password = "Obrigatório";
+      else if (!isPassStrong) errs.password = "A palavra-passe deve ser forte";
       if (data.password !== data.confirmPassword) errs.confirmPassword = "As palavras-passe não coincidem";
     }
     if (step === 1) {
@@ -206,13 +249,14 @@ export default function CadastroEstudante() {
               <input
                 type={showPass ? "text" : "password"} value={data.password}
                 onChange={(e) => set("password", e.target.value)}
-                placeholder="Mínimo 6 caracteres"
+                placeholder="Introduz uma palavra-passe forte"
                 className={`w-full px-4 pr-10 py-3 border rounded-xl text-sm focus:outline-none transition-colors placeholder-gray-300 ${errors.password ? "border-red-300 bg-red-50" : "border-gray-200 focus:border-[#E8501A]"}`}
               />
               <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer">
                 <i className={`${showPass ? "ri-eye-off-line" : "ri-eye-line"} text-base`}></i>
               </button>
             </div>
+            <PasswordStrength password={data.password} onValidationChange={setIsPassStrong} />
             {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password}</p>}
           </div>
           <InputRow label="Confirmar palavra-passe" id="confirm" type="password" value={data.confirmPassword} onChange={v => set("confirmPassword", v)} placeholder="Repete a palavra-passe" error={errors.confirmPassword} />
@@ -252,21 +296,41 @@ export default function CadastroEstudante() {
       {step === 2 && (
         <div className="space-y-4">
           <h3 className="font-bold text-[#1A1A2E] text-lg mb-4">Informação académica</h3>
+          
+          <div className="mb-4">
+            <label className="block text-xs font-semibold text-[#1A1A2E] mb-2">Nível de Ensino</label>
+            <div className="flex bg-[#F4F4F6] rounded-xl p-1">
+              {["Médio", "Superior"].map((level) => (
+                <button
+                  key={level} type="button"
+                  onClick={() => { set("educationLevel", level as any); set("year", ""); }}
+                  className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    data.educationLevel === level 
+                      ? "bg-white text-[#1A1A2E] shadow-sm" 
+                      : "text-gray-400"
+                  }`}
+                >
+                  Ensino {level}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div>
             <label className="block text-xs font-semibold text-[#1A1A2E] mb-1.5">Curso</label>
-            <select
-              value={data.course} onChange={(e) => set("course", e.target.value)}
-              className={`w-full px-4 py-3 border rounded-xl text-sm focus:outline-none transition-colors cursor-pointer ${errors.course ? "border-red-300 bg-red-50" : "border-gray-200 focus:border-[#E8501A]"}`}
-            >
-              <option value="">Selecciona o teu curso</option>
-              {courses.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
+            <SearchableSelect
+              options={data.educationLevel === "Superior" ? superiorCourses : medioCourses}
+              value={data.course}
+              onChange={(val) => set("course", val)}
+              placeholder="Pesquisa e selecciona o teu curso"
+              error={errors.course}
+            />
             {errors.course && <p className="text-xs text-red-500 mt-1">{errors.course}</p>}
           </div>
           <div>
-            <label className="block text-xs font-semibold text-[#1A1A2E] mb-1.5">Ano académico</label>
+            <label className="block text-xs font-semibold text-[#1A1A2E] mb-1.5">Ano / Classe actual</label>
             <div className="grid grid-cols-3 gap-2">
-              {years.map((y) => (
+              {(data.educationLevel === "Superior" ? higherEducationYears : middleEducationYears).map((y) => (
                 <button
                   key={y} type="button"
                   onClick={() => set("year", y)}

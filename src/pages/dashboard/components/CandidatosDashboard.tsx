@@ -46,6 +46,15 @@ function CandidatoModal({
         .eq('id', candidato.id);
 
       if (error) throw error;
+      
+      // 2. Create Notification for Student
+      await supabase.from('notifications').insert({
+        user_id: candidato.student_id,
+        title: 'Actualização da Candidatura',
+        content: `A empresa actualizou o estado da tua candidatura para "${newStatus}" na vaga de "${vagaTitle}"`,
+        type: 'candidatura'
+      });
+
       onStatusChange(candidato.id, newStatus, feedback);
       Swal.fire({
         icon: 'success',

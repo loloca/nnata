@@ -44,7 +44,7 @@ export default function VagasPage() {
             logo_url
           )
         `)
-        .eq('status', 'active');
+        .eq('status', 'Activa');
 
       if (!error && data) {
         // Map Supabase data to Vaga type
@@ -52,7 +52,7 @@ export default function VagasPage() {
           id: item.id,
           title: item.title,
           company: item.companies?.name || "Empresa",
-          logo: item.companies?.logo_url || "",
+          companyLogo: item.companies?.logo_url || "https://readdy.ai/api/search-image?query=company%20logo%20abstract&width=56&height=56",
           area: item.area,
           province: item.province,
           duration: item.duration,
@@ -60,6 +60,7 @@ export default function VagasPage() {
           sector: item.sector || "Geral",
           description: item.description,
           requirements: item.requirements ? item.requirements.split('\n') : [],
+          benefits: item.benefits ? item.benefits.split('\n') : [],
           postedDaysAgo: Math.floor((new Date().getTime() - new Date(item.created_at).getTime()) / (1000 * 3600 * 24)),
           applicants: item.applicants_count || 0,
           featured: item.is_featured,

@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import Navbar from "@/components/feature/Navbar";
 import Footer from "@/components/feature/Footer";
-import { getEmpresaBySlug, vagasPorEmpresa } from "@/mocks/empresas";
+import { supabase } from "@/lib/supabase";
 
 const typeColors: Record<string, string> = {
   Presencial: "bg-emerald-50 text-emerald-700",
@@ -13,18 +13,90 @@ const typeColors: Record<string, string> = {
 export default function EmpresaPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const empresa = getEmpresaBySlug(id ?? "");
-  const vagas = vagasPorEmpresa[id ?? ""] ?? [];
-
+  const [empresa, setEmpresa] = useState<any>(null);
+  const [vagas, setVagas] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"sobre" | "vagas" | "cultura" | "depoimentos">("sobre");
   const [seguindo, setSeguindo] = useState(false);
   const [fotoIdx, setFotoIdx] = useState(0);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
+  useEffect(() => {
+    const fetchEmpresaData = async () => {
+      if (!id) return;
+      setLoading(true);
+
+      // 1. Fetch Company
+      const { data: compData, error: compError } = await supabase
+        .from('companies')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (!compError && compData) {
+        // Map DB fields to UI expectations
+        setEmpresa({
+          ...compData,
+          logo: compData.logo_url || "https://readdy.ai/api/search-image?query=company%20logo%20minimal%20abstract&width=80&height=80",
+          cover: compData.cover_url || "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1200",
+          verificada: true,
+          rating: 5.0,
+          colaboradores: "10-50",
+          fundacao: "2020",
+          totalEstagios: 42,
+          vagasAtivas: 0, // Will update after vagas fetch
+          taxaAprovacao: 95,
+          dimensao: "Média",
+          valores: [
+            { title: "Inovação", icon: "ri-lightbulb-line", desc: "Sempre na vanguarda" },
+            { title: "Qualidade", icon: "ri-medal-line", desc: "Excelência em tudo" },
+            { title: "Pessoas", icon: "ri-group-line", desc: "O nosso maior activo" }
+          ],
+          fotos: [
+            compData.cover_url || "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1200",
+            "https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&q=80&w=1200"
+          ],
+          cultura: compData.description || "Uma cultura focada em resultados e bem-estar dos colaboradores.",
+          beneficiosEstagio: ["Subsídio de transporte", "Mentoria", "Certificado"],
+          areaContratacao: [compData.sector || "Tecnologia"],
+          depoimentos: [
+            { name: "Carlos Silva", role: "Ex-estagiário", avatar: "https://readdy.ai/api/search-image?query=portrait%20young%20man%20professional&width=40&height=40", texto: "Uma experiência incrível de aprendizagem." }
+          ]
+        });
+
+        // 2. Fetch Vacancies
+        const { data: vData, error: vError } = await supabase
+          .from('internships')
+          .select('*')
+          .eq('company_id', id)
+          .eq('status', 'Activa');
+
+        if (!vError && vData) {
+          setVagas(vData);
+          setEmpresa((prev: any) => ({ ...prev, vagasAtivas: vData.length }));
+        }
+      }
+      setLoading(false);
+    };
+
+    fetchEmpresaData();
+  }, [id]);
+
   const showToast = (msg: string) => {
     setToastMsg(msg);
     setTimeout(() => setToastMsg(null), 2500);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#F8F7F4] flex flex-col">
+        <Navbar />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="w-10 h-10 border-4 border-[#E8501A] border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      </div>
+    );
+  }
 
   if (!empresa) {
     return (
@@ -57,8 +129,8 @@ export default function EmpresaPage() {
       <Navbar />
 
       {/* ── COVER ── */}
-      <div className="pt-20 relative">
-        <div className="h-64 md:h-80 overflow-hidden relative">
+      <div className="relative">
+        <div className="h-72 md:h-96 overflow-hidden relative">
           <img
             src={empresa.cover}
             alt={empresa.name}
@@ -69,10 +141,10 @@ export default function EmpresaPage() {
 
         {/* Profile card overlay */}
         <div className="max-w-6xl mx-auto px-4 md:px-8">
-          <div className="relative -mt-16 bg-white rounded-2xl border border-gray-100 p-6 md:p-8">
+          <div className="relative -mt-20 md:-mt-24 bg-white rounded-3xl border border-gray-100 p-6 md:p-8 shadow-xl shadow-gray-200/50">
             <div className="flex flex-col sm:flex-row items-start gap-5">
               {/* Logo */}
-              <div className="w-20 h-20 rounded-2xl overflow-hidden border-4 border-white bg-white flex-shrink-0 -mt-14 sm:-mt-16">
+              <div className="w-24 h-24 rounded-3xl overflow-hidden border-4 border-white bg-white flex-shrink-0 -mt-16 sm:-mt-20 shadow-lg">
                 <img src={empresa.logo} alt={empresa.name} className="w-full h-full object-cover object-top" />
               </div>
 
@@ -300,8 +372,8 @@ export default function EmpresaPage() {
                           <span className="text-xs text-gray-400 flex items-center gap-1"><i className="ri-time-line"></i>{vaga.duration}</span>
                         </div>
                         <div className="flex items-center gap-4 mt-3 text-xs text-gray-400">
-                          <span className="flex items-center gap-1"><i className="ri-group-line"></i>{vaga.applicants} candidatos</span>
-                          <span className="flex items-center gap-1"><i className="ri-calendar-line"></i>Publicada em {vaga.publishedAt}</span>
+                          <span className="flex items-center gap-1"><i className="ri-group-line"></i>{vaga.applicants_count || 0} candidatos</span>
+                          <span className="flex items-center gap-1"><i className="ri-calendar-line"></i>Publicada em {new Date(vaga.created_at).toLocaleDateString('pt-AO')}</span>
                         </div>
                       </div>
                       <Link

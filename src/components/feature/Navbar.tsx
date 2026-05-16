@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { notificacoesMock } from "@/mocks/notificacoes";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/lib/supabase";
 
 const navLinks = [
   { label: "Início", href: "/" },
@@ -19,10 +20,54 @@ export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isAuthenticated, signOut } = useAuth();
+  const [notifications, setNotifications] = useState<any[]>([]);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
-  const unreadCount = notificacoesMock.filter((n) => n.role === "estudante" && !n.lida).length;
-  const recentNotifs = notificacoesMock.filter((n) => n.role === "estudante").slice(0, 3);
+  const unreadCount = notifications.filter((n) => !n.is_read).length;
+  const recentNotifs = notifications.slice(0, 5);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchNotifications = async () => {
+      const { data } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+      
+      if (data) setNotifications(data);
+    };
+
+    fetchNotifications();
+
+    // Subscribe to real-time notifications
+    const channel = supabase
+      .channel(`user-notifs-${user.id}`)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'notifications',
+        filter: `user_id=eq.${user.id}`
+      }, (payload) => {
+        setNotifications(prev => [payload.new, ...prev].slice(0, 10));
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
+  const markAsRead = async (id: string) => {
+    await supabase
+      .from('notifications')
+      .update({ is_read: true })
+      .eq('id', id);
+    
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+  };
 
   const handleLogout = async () => {
     await signOut();
@@ -50,10 +95,12 @@ export default function Navbar() {
     setMenuOpen(false);
   }, [location.pathname]);
 
+  const isLight = scrolled || location.pathname !== "/";
+
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? "bg-white shadow-sm" : "bg-transparent"
+        isLight ? "bg-white shadow-sm" : "bg-transparent"
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 md:px-8 h-20 flex items-center justify-between">
@@ -64,7 +111,7 @@ export default function Navbar() {
           </div>
           <span
             className={`font-bold text-lg tracking-tight transition-colors duration-300 ${
-              scrolled ? "text-[#1A1A2E]" : "text-white"
+              isLight ? "text-[#1A1A2E]" : "text-white"
             }`}
             style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
           >
@@ -81,7 +128,7 @@ export default function Navbar() {
               className={`text-sm font-medium transition-colors duration-200 whitespace-nowrap cursor-pointer ${
                 location.pathname === link.href
                   ? "text-[#E8501A]"
-                  : scrolled
+                  : isLight
                   ? "text-[#374151] hover:text-[#E8501A]"
                   : "text-white/90 hover:text-white"
               }`}
@@ -98,7 +145,7 @@ export default function Navbar() {
             <button
               onClick={() => setNotifOpen(!notifOpen)}
               className={`w-10 h-10 flex items-center justify-center rounded-full transition-colors cursor-pointer ${
-                scrolled
+                isLight
                   ? "hover:bg-gray-100 text-[#374151]"
                   : "hover:bg-white/10 text-white"
               }`}
@@ -127,33 +174,40 @@ export default function Navbar() {
                     Ver painel
                   </Link>
                 </div>
-                {recentNotifs.map((n) => {
+                {recentNotifs.length > 0 ? recentNotifs.map((n) => {
                   const cfg = { icon: "ri-bell-line", bg: "bg-orange-50" };
-                  if (n.categoria === "candidatura") { cfg.icon = "ri-send-plane-line"; cfg.bg = "bg-orange-50"; }
-                  else if (n.categoria === "vaga") { cfg.icon = "ri-briefcase-line"; cfg.bg = "bg-violet-50"; }
-                  else if (n.categoria === "entrevista") { cfg.icon = "ri-calendar-check-line"; cfg.bg = "bg-emerald-50"; }
-                  else if (n.categoria === "perfil") { cfg.icon = "ri-user-line"; cfg.bg = "bg-amber-50"; }
-                  else if (n.categoria === "sistema") { cfg.icon = "ri-settings-3-line"; cfg.bg = "bg-gray-100"; }
+                  if (n.type === "candidatura") { cfg.icon = "ri-send-plane-line"; cfg.bg = "bg-orange-50"; }
+                  else if (n.type === "vaga") { cfg.icon = "ri-briefcase-line"; cfg.bg = "bg-violet-50"; }
+                  else if (n.type === "entrevista") { cfg.icon = "ri-calendar-check-line"; cfg.bg = "bg-emerald-50"; }
+                  else if (n.type === "perfil") { cfg.icon = "ri-user-line"; cfg.bg = "bg-amber-50"; }
+                  else if (n.type === "sistema") { cfg.icon = "ri-settings-3-line"; cfg.bg = "bg-gray-100"; }
+                  
+                  const timeStr = new Date(n.created_at).toLocaleTimeString('pt-AO', { hour: '2-digit', minute: '2-digit' });
+
                   return (
-                    <Link
+                    <div
                       key={n.id}
-                      to="/notificacoes"
-                      onClick={() => setNotifOpen(false)}
+                      onClick={() => { markAsRead(n.id); setNotifOpen(false); }}
                       className={`px-4 py-3 flex items-start gap-3 hover:bg-gray-50 cursor-pointer transition-colors block ${
-                        !n.lida ? "bg-orange-50/40" : ""
+                        !n.is_read ? "bg-orange-50/40" : ""
                       }`}
                     >
                       <div className={`w-8 h-8 flex items-center justify-center rounded-full ${cfg.bg} flex-shrink-0`}>
                         <i className={`${cfg.icon} text-[#E8501A] text-sm`}></i>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold text-[#1A1A2E] leading-snug truncate">{n.titulo}</p>
-                        <p className="text-xs text-gray-400 mt-0.5">{n.tempo}</p>
+                        <p className="text-xs font-semibold text-[#1A1A2E] leading-snug truncate">{n.title}</p>
+                        <p className="text-[10px] text-gray-400 mt-0.5 line-clamp-2">{n.content}</p>
+                        <p className="text-[9px] text-gray-300 mt-1">{timeStr}</p>
                       </div>
-                      {!n.lida && <div className="w-2 h-2 bg-[#E8501A] rounded-full mt-1.5 flex-shrink-0"></div>}
-                    </Link>
+                      {!n.is_read && <div className="w-2 h-2 bg-[#E8501A] rounded-full mt-1.5 flex-shrink-0"></div>}
+                    </div>
                   );
-                })}
+                }) : (
+                  <div className="px-4 py-8 text-center">
+                    <p className="text-xs text-gray-400">Nenhuma notificação</p>
+                  </div>
+                )}
                 <div className="px-4 py-2.5 border-t border-gray-100 text-center">
                   <Link
                     to="/notificacoes"
@@ -172,17 +226,21 @@ export default function Navbar() {
               <button
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
                 className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition-all cursor-pointer ${
-                  scrolled ? "border-gray-200 hover:border-[#E8501A]" : "border-white/30 hover:border-white"
+                  isLight ? "border-gray-200 hover:border-[#E8501A]" : "border-white/30 hover:border-white"
                 }`}
               >
-                <div className="w-7 h-7 flex items-center justify-center rounded-full bg-[#E8501A] flex-shrink-0">
-                  <i className="ri-user-line text-white text-xs"></i>
+                <div className="w-7 h-7 flex items-center justify-center rounded-full bg-[#E8501A] flex-shrink-0 overflow-hidden">
+                  {user.avatar ? (
+                    <img src={user.avatar} alt={user.nome} className="w-full h-full object-cover" />
+                  ) : (
+                    <i className="ri-user-line text-white text-xs"></i>
+                  )}
                 </div>
-                <span className={`text-sm font-medium whitespace-nowrap max-w-[120px] truncate ${scrolled ? "text-[#1A1A2E]" : "text-white"}`}>
+                <span className={`text-sm font-medium whitespace-nowrap max-w-[120px] truncate ${isLight ? "text-[#1A1A2E]" : "text-white"}`}>
                   {user.nome.split(" ")[0]}
                 </span>
                 <div className="w-4 h-4 flex items-center justify-center">
-                  <i className={`ri-arrow-down-s-line text-sm ${scrolled ? "text-gray-400" : "text-white/70"}`}></i>
+                  <i className={`ri-arrow-down-s-line text-sm ${isLight ? "text-gray-400" : "text-white/70"}`}></i>
                 </div>
               </button>
               {userMenuOpen && (
@@ -226,7 +284,7 @@ export default function Navbar() {
               <Link
                 to="/login"
                 className={`text-sm font-medium px-5 py-2.5 rounded-lg border transition-all duration-200 whitespace-nowrap cursor-pointer ${
-                  scrolled
+                  isLight
                     ? "border-[#1A1A2E] text-[#1A1A2E] hover:bg-[#1A1A2E] hover:text-white"
                     : "border-white text-white hover:bg-white hover:text-[#1A1A2E]"
                 }`}
@@ -248,7 +306,7 @@ export default function Navbar() {
           <Link
             to="/notificacoes"
             className={`relative w-10 h-10 flex items-center justify-center rounded-full transition-colors cursor-pointer ${
-              scrolled ? "text-[#374151] hover:bg-gray-100" : "text-white hover:bg-white/10"
+              isLight ? "text-[#374151] hover:bg-gray-100" : "text-white hover:bg-white/10"
             }`}
           >
             <i className="ri-notification-3-line text-lg"></i>
@@ -260,7 +318,7 @@ export default function Navbar() {
           </Link>
           <button
             className={`w-10 h-10 flex items-center justify-center cursor-pointer ${
-              scrolled ? "text-[#1A1A2E]" : "text-white"
+              isLight ? "text-[#1A1A2E]" : "text-white"
             }`}
             onClick={() => setMenuOpen(!menuOpen)}
           >

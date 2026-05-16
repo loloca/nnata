@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS public.internships (
     benefits TEXT,
     applicants_count INTEGER DEFAULT 0,
     is_featured BOOLEAN DEFAULT FALSE,
-    status TEXT DEFAULT 'active',
+    status TEXT DEFAULT 'Activa',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -98,7 +98,7 @@ CREATE POLICY "Empresas podem editar seu próprio perfil" ON public.companies FO
 CREATE POLICY "Empresas visíveis para todos" ON public.companies FOR SELECT USING (true);
 
 -- Vagas
-CREATE POLICY "Vagas ativas visíveis para todos" ON public.internships FOR SELECT USING (status = 'active');
+CREATE POLICY "Vagas ativas visíveis para todos" ON public.internships FOR SELECT USING (status = 'Activa');
 CREATE POLICY "Empresas gerem suas vagas" ON public.internships FOR ALL USING (auth.uid() = company_id);
 
 -- Candidaturas
@@ -126,3 +126,12 @@ CREATE TABLE IF NOT EXISTS public.notifications (
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Utilizadores veem suas notificações" ON public.notifications FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Sistema e utilizadores podem gerir notificações" ON public.notifications FOR ALL USING (auth.uid() = user_id);
+-- 7. Funções de Utilidade
+CREATE OR REPLACE FUNCTION increment_applicants(row_id UUID)
+RETURNS void AS $$
+BEGIN
+    UPDATE public.internships
+    SET applicants_count = applicants_count + 1
+    WHERE id = row_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;

@@ -7,49 +7,22 @@ import SearchableSelect from "@/components/common/SearchableSelect";
 import { areas, provinces } from "@/mocks/landing";
 
 const STEPS = ["Conta", "Perfil", "Académico", "Pronto!"];
-
 const medioCourses = [
-  "Técnico de Informática", "Técnico de Programação", "Técnico de Redes Informáticas", "Técnico de Sistemas Informáticos",
-  "Técnico de Base de Dados", "Técnico de Cibersegurança", "Técnico de Multimédia", "Técnico de Design Gráfico",
-  "Técnico de Electrónica", "Técnico de Telecomunicações", "Técnico de Electricidade Industrial", "Técnico de Electromecânica",
-  "Técnico de Mecânica Industrial", "Técnico de Mecânica Auto", "Técnico de Mecatrónica", "Técnico de Frio e Climatização",
-  "Técnico de Energias Renováveis", "Técnico de Automação Industrial", "Técnico de Instrumentação Industrial", "Técnico de Soldadura",
-  "Técnico de Construção Civil", "Técnico de Obras Públicas", "Técnico de Topografia", "Técnico de Desenho de Construção Civil",
-  "Técnico de Hidráulica", "Técnico de Saneamento", "Técnico de Urbanismo", "Técnico de Carpintaria", "Técnico de Canalização",
-  "Técnico de Pintura de Construção", "Técnico de Geologia", "Técnico de Minas", "Técnico de Petróleo e Gás", "Técnico de Perfuração Petrolífera",
-  "Técnico de Refinação", "Técnico de Metalurgia", "Técnico de Química Industrial", "Técnico de Ambiente", "Técnico de Laboratório Industrial",
-  "Técnico de Segurança Industrial", "Técnico de Administração Pública", "Técnico de Administração e Gestão", "Técnico de Contabilidade",
-  "Técnico de Finanças", "Técnico de Comércio", "Técnico de Gestão Empresarial", "Técnico de Recursos Humanos", "Técnico de Marketing",
-  "Técnico de Secretariado", "Técnico de Estatística", "Técnico de Planeamento", "Técnico de Gestão Bancária", "Técnico de Logística",
-  "Técnico de Procurement", "Técnico de Seguros", "Técnico de Empreendedorismo", "Técnico de Comunicação Social", "Técnico de Jornalismo",
-  "Técnico de Produção de Eventos", "Técnico de Relações Públicas", "Técnico de Turismo", "Técnico de Hotelaria", "Técnico de Restauração",
-  "Técnico de Cozinha", "Técnico de Pastelaria", "Técnico de Guia Turístico", "Técnico Agrário", "Técnico de Produção Animal",
-  "Técnico de Veterinária", "Técnico Florestal", "Técnico de Irrigação", "Técnico de Agropecuária", "Técnico de Pescas", "Técnico de Aquicultura",
-  "Técnico de Agricultura Sustentável", "Técnico Médio de Enfermagem", "Técnico de Análises Clínicas", "Técnico de Farmácia",
-  "Técnico de Radiologia", "Técnico de Saúde Ambiental", "Técnico de Fisioterapia", "Técnico de Nutrição", "Técnico de Saúde Pública",
-  "Técnico de Estomatologia", "Técnico de Hemoterapia", "Técnico de Música", "Técnico de Artes Visuais", "Técnico de Teatro",
-  "Técnico de Dança", "Técnico de Moda", "Técnico de Design de Interiores", "Técnico de Educação Física", "Técnico de Desporto",
-  "Técnico de Arbitragem", "Técnico de Segurança no Trabalho", "Técnico de Protecção Civil", "Técnico de Bombeiros", "Técnico Aduaneiro",
-  "Técnico de Transporte Marítimo", "Técnico de Aviação Civil"
+  "Recursos Humanos",
+  "Estatística e Planeamento",
+  "Gestão Comercial e Marketing",
+  "Administração Pública",
+  "Informática de Gestão",
+  "Administração Local e Autárquica"
 ];
 
 const superiorCourses = [
-  "Medicina", "Enfermagem", "Farmácia", "Odontologia", "Psicologia", "Fisioterapia", "Nutrição", "Saúde Pública",
-  "Análises Clínicas", "Radiologia", "Direito", "Relações Internacionais", "Ciência Política", "Administração Pública",
-  "Sociologia", "Filosofia", "História", "Antropologia", "Serviço Social", "Criminologia", "Gestão de Empresas",
-  "Contabilidade e Auditoria", "Economia", "Finanças", "Gestão Bancária", "Marketing", "Recursos Humanos", "Gestão Comercial",
-  "Comércio Exterior", "Logística", "Empreendedorismo", "Gestão de Projectos", "Engenharia Informática", "Engenharia de Software",
-  "Ciência da Computação", "Sistemas de Informação", "Engenharia de Redes", "Cibersegurança", "Inteligência Artificial",
-  "Ciência de Dados", "Engenharia Electrotécnica", "Engenharia Electrónica", "Engenharia Mecânica", "Engenharia Civil",
-  "Engenharia Química", "Engenharia Ambiental", "Engenharia Industrial", "Engenharia de Minas", "Engenharia Petrolífera",
-  "Engenharia Agronómica", "Engenharia Florestal", "Engenharia Hidráulica", "Engenharia de Energias Renováveis",
-  "Arquitectura e Urbanismo", "Urbanismo", "Design Industrial", "Matemática", "Física", "Química", "Biologia", "Geologia",
-  "Estatística", "Actuariado", "Língua Portuguesa", "Língua Inglesa", "Língua Francesa", "Linguística", "Tradução e Interpretação",
-  "Jornalismo", "Comunicação Social", "Cinema e Audiovisual", "Publicidade e Propaganda", "Relações Públicas", "Turismo e Hotelaria",
-  "Gastronomia", "Educação Física", "Ciências do Desporto", "Treino Desportivo", "Arbitragem Desportiva", "Música", "Teatro",
-  "Dança", "Artes Visuais", "Moda e Estilismo", "Design Gráfico", "Design de Interiores", "Pedagogia", "Ciências da Educação",
-  "Educação de Infância", "Ensino Primário", "Matemática Educacional", "Física Educacional", "Química Educacional",
-  "Biologia Educacional", "Geografia", "Gestão Ambiental", "Oceanografia", "Meteorologia", "Aviação Civil", "Gestão Portuária e Marítima"
+  "Recursos Humanos",
+  "Estatística e Planeamento",
+  "Gestão Comercial e Marketing",
+  "Administração Pública",
+  "Informática de Gestão",
+  "Administração Local e Autárquica"
 ];
 
 const higherEducationYears = ["1.º Ano", "2.º Ano", "3.º Ano", "4.º Ano", "5.º Ano", "Recém-Formado"];
@@ -68,12 +41,14 @@ interface Field {
   educationLevel: "Médio" | "Superior";
   areasInterest: string[];
   linkedin: string;
+  processNumber: string;
 }
 
 const initial: Field = {
   email: "", password: "", confirmPassword: "",
   fullName: "", phone: "", province: "", bio: "",
   course: "", year: "", educationLevel: "Superior", areasInterest: [], linkedin: "",
+  processNumber: "",
 };
 
 const InputRow = ({ label, id, type = "text", value, onChange, placeholder, error, right }: {
@@ -123,16 +98,39 @@ export default function CadastroEstudante() {
   const validateStep = () => {
     const errs: Partial<Field> = {};
     if (step === 0) {
-      if (!data.email) errs.email = "Obrigatório";
-      if (!data.password) errs.password = "Obrigatório";
-      else if (!isPassStrong) errs.password = "A palavra-passe deve ser forte";
-      if (data.password !== data.confirmPassword) errs.confirmPassword = "As palavras-passe não coincidem";
+      if (!data.email) {
+        errs.email = "Obrigatório";
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim())) {
+        errs.email = "Por favor, introduza um email válido";
+      }
+      
+      if (!data.password) {
+        errs.password = "Obrigatório";
+      } else if (!isPassStrong) {
+        errs.password = "A palavra-passe deve ser forte (cumprir todos os requisitos abaixo)";
+      }
+      
+      if (!data.confirmPassword) {
+        errs.confirmPassword = "Obrigatório";
+      } else if (data.password !== data.confirmPassword) {
+        errs.confirmPassword = "As palavras-passe não coincidem";
+      }
     }
     if (step === 1) {
       if (!data.fullName) errs.fullName = "Obrigatório";
+      if (!data.phone) {
+        errs.phone = "Obrigatório";
+      } else if (!/^(\+244\s?)?9[1-9][0-9]{7}$/.test(data.phone.trim().replace(/\s/g, ''))) {
+        errs.phone = "Telemóvel inválido. Formatos válidos: 9XXXXXXXX ou +244 9XXXXXXXX";
+      }
       if (!data.province) errs.province = "Obrigatório";
     }
     if (step === 2) {
+      if (!data.processNumber) {
+        errs.processNumber = "Obrigatório";
+      } else if (!/^\d{4,12}$/.test(data.processNumber.trim())) {
+        errs.processNumber = "O número de processo deve conter entre 4 e 12 dígitos";
+      }
       if (!data.course) errs.course = "Obrigatório";
       if (!data.year) errs.year = "Obrigatório";
     }
@@ -142,6 +140,41 @@ export default function CadastroEstudante() {
 
   const next = async () => {
     if (!validateStep()) return;
+    
+    const { supabase } = await import("@/lib/supabase");
+    
+    // Perform async uniqueness check on step 2 before signup
+    if (step === 2) {
+      setLoading(true);
+      try {
+        const { data: existingProcess, error: procError } = await supabase
+          .from('students')
+          .select('id')
+          .eq('process_number', data.processNumber.trim())
+          .maybeSingle();
+
+        if (procError) {
+          console.error("Erro ao verificar número de processo:", procError);
+        }
+
+        if (existingProcess) {
+          setErrors({ processNumber: "Este número de processo já está em uso" });
+          Swal.fire({
+            icon: 'error',
+            title: 'Número de Processo Duplicado',
+            text: 'Este número de processo já está registado. Por favor, verifica os teus dados.',
+            confirmButtonColor: '#E8501A'
+          });
+          setLoading(false);
+          return;
+        }
+      } catch (err) {
+        console.error("Erro na verificação:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
     if (step < 2) { 
       setStep(s => s + 1); 
       return; 
@@ -149,8 +182,6 @@ export default function CadastroEstudante() {
     
     setLoading(true);
     setErrors({});
-    
-    const { supabase } = await import("@/lib/supabase");
     
     try {
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -179,7 +210,8 @@ export default function CadastroEstudante() {
             course: data.course,
             academic_year: data.year,
             areas_interest: data.areasInterest || [],
-            linkedin_url: data.linkedin?.trim() || null
+            linkedin_url: data.linkedin?.trim() || null,
+            process_number: data.processNumber.trim()
           });
 
         if (dbError) {
@@ -203,7 +235,6 @@ export default function CadastroEstudante() {
     } finally {
       setLoading(false);
     }
-
   };
 
   if (step === 3) {
@@ -267,7 +298,7 @@ export default function CadastroEstudante() {
         <div className="space-y-4">
           <h3 className="font-bold text-[#1A1A2E] text-lg mb-4">O teu perfil pessoal</h3>
           <InputRow label="Nome completo" id="name" value={data.fullName} onChange={v => set("fullName", v)} placeholder="João Manuel da Silva" error={errors.fullName} />
-          <InputRow label="Telemóvel" id="phone" value={data.phone} onChange={v => set("phone", v)} placeholder="+244 9XX XXX XXX" />
+          <InputRow label="Telemóvel" id="phone" value={data.phone} onChange={v => set("phone", v.replace(/[^\d\s+]/g, ""))} placeholder="+244 9XX XXX XXX" error={errors.phone} />
           <div>
             <label className="block text-xs font-semibold text-[#1A1A2E] mb-1.5">Província</label>
             <select
@@ -297,6 +328,15 @@ export default function CadastroEstudante() {
         <div className="space-y-4">
           <h3 className="font-bold text-[#1A1A2E] text-lg mb-4">Informação académica</h3>
           
+          <InputRow 
+            label="Número de Processo (IPAS)" 
+            id="processNumber" 
+            value={data.processNumber} 
+            onChange={v => set("processNumber", v)} 
+            placeholder="Introduz o teu número de processo" 
+            error={errors.processNumber} 
+          />
+
           <div className="mb-4">
             <label className="block text-xs font-semibold text-[#1A1A2E] mb-2">Nível de Ensino</label>
             <div className="flex bg-[#F4F4F6] rounded-xl p-1">

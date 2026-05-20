@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS public.students (
     areas_interest TEXT[],
     linkedin_url TEXT,
     avatar_url TEXT,
+    process_number TEXT UNIQUE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -46,6 +47,7 @@ CREATE TABLE IF NOT EXISTS public.internships (
     requirements TEXT,
     benefits TEXT,
     applicants_count INTEGER DEFAULT 0,
+    vacancies_count INTEGER DEFAULT 1,
     is_featured BOOLEAN DEFAULT FALSE,
     status TEXT DEFAULT 'Activa',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -106,6 +108,9 @@ CREATE POLICY "Estudantes veem suas candidaturas" ON public.applications FOR SEL
 CREATE POLICY "Empresas veem candidaturas das suas vagas" ON public.applications FOR SELECT USING (
     EXISTS (SELECT 1 FROM public.internships WHERE id = internship_id AND company_id = auth.uid())
 );
+CREATE POLICY "Empresas atualizam candidaturas" ON public.applications FOR UPDATE USING (
+    EXISTS (SELECT 1 FROM public.internships WHERE id = internship_id AND company_id = auth.uid())
+);
 CREATE POLICY "Estudantes podem se candidatar" ON public.applications FOR INSERT WITH CHECK (auth.uid() = student_id);
 
 -- Projectos
@@ -125,7 +130,9 @@ CREATE TABLE IF NOT EXISTS public.notifications (
 
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Utilizadores veem suas notificações" ON public.notifications FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Sistema e utilizadores podem gerir notificações" ON public.notifications FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Utilizadores podem criar notificações" ON public.notifications FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+CREATE POLICY "Utilizadores gerem suas próprias notificações" ON public.notifications FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Utilizadores eliminam suas próprias notificações" ON public.notifications FOR DELETE USING (auth.uid() = user_id);
 -- 7. Funções de Utilidade
 CREATE OR REPLACE FUNCTION increment_applicants(row_id UUID)
 RETURNS void AS $$

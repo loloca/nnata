@@ -19,7 +19,7 @@ export default function Navbar() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, isAuthenticated, signOut } = useAuth();
+  const { user, isAuthenticated, isLoading, signOut } = useAuth();
   const [notifications, setNotifications] = useState<any[]>([]);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
@@ -141,143 +141,112 @@ export default function Navbar() {
         {/* Actions */}
         <div className="hidden md:flex items-center gap-3" ref={userMenuRef}>
           {/* Notification bell */}
-          <div className="relative">
-            <button
-              onClick={() => setNotifOpen(!notifOpen)}
-              className={`w-10 h-10 flex items-center justify-center rounded-full transition-colors cursor-pointer ${
-                isLight
-                  ? "hover:bg-gray-100 text-[#374151]"
-                  : "hover:bg-white/10 text-white"
-              }`}
-            >
-              <i className="ri-notification-3-line text-lg"></i>
-              {unreadCount > 0 && (
-                <span className="absolute top-1.5 right-1.5 w-4 h-4 flex items-center justify-center bg-[#E8501A] text-white text-xs font-bold rounded-full leading-none">
-                  {unreadCount > 9 ? "9+" : unreadCount}
-                </span>
-              )}
-            </button>
-            {notifOpen && (
-              <div className="absolute right-0 top-12 w-80 bg-white rounded-2xl border border-gray-100 overflow-hidden z-50" style={{ boxShadow: "0 4px 24px rgba(0,0,0,0.10)" }}>
-                <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-[#1A1A2E] text-sm">Notificações</span>
-                    {unreadCount > 0 && (
-                      <span className="text-xs bg-[#E8501A] text-white font-bold px-1.5 py-0.5 rounded-full">{unreadCount}</span>
-                    )}
-                  </div>
-                  <Link
-                    to="/notificacoes"
-                    onClick={() => setNotifOpen(false)}
-                    className="text-xs text-[#E8501A] font-medium cursor-pointer hover:underline whitespace-nowrap"
-                  >
-                    Ver painel
-                  </Link>
-                </div>
-                {recentNotifs.length > 0 ? recentNotifs.map((n) => {
-                  const cfg = { icon: "ri-bell-line", bg: "bg-orange-50" };
-                  if (n.type === "candidatura") { cfg.icon = "ri-send-plane-line"; cfg.bg = "bg-orange-50"; }
-                  else if (n.type === "vaga") { cfg.icon = "ri-briefcase-line"; cfg.bg = "bg-violet-50"; }
-                  else if (n.type === "entrevista") { cfg.icon = "ri-calendar-check-line"; cfg.bg = "bg-emerald-50"; }
-                  else if (n.type === "perfil") { cfg.icon = "ri-user-line"; cfg.bg = "bg-amber-50"; }
-                  else if (n.type === "sistema") { cfg.icon = "ri-settings-3-line"; cfg.bg = "bg-gray-100"; }
-                  
-                  const timeStr = new Date(n.created_at).toLocaleTimeString('pt-AO', { hour: '2-digit', minute: '2-digit' });
-
-                  return (
-                    <div
-                      key={n.id}
-                      onClick={() => { markAsRead(n.id); setNotifOpen(false); }}
-                      className={`px-4 py-3 flex items-start gap-3 hover:bg-gray-50 cursor-pointer transition-colors block ${
-                        !n.is_read ? "bg-orange-50/40" : ""
-                      }`}
-                    >
-                      <div className={`w-8 h-8 flex items-center justify-center rounded-full ${cfg.bg} flex-shrink-0`}>
-                        <i className={`${cfg.icon} text-[#E8501A] text-sm`}></i>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold text-[#1A1A2E] leading-snug truncate">{n.title}</p>
-                        <p className="text-[10px] text-gray-400 mt-0.5 line-clamp-2">{n.content}</p>
-                        <p className="text-[9px] text-gray-300 mt-1">{timeStr}</p>
-                      </div>
-                      {!n.is_read && <div className="w-2 h-2 bg-[#E8501A] rounded-full mt-1.5 flex-shrink-0"></div>}
-                    </div>
-                  );
-                }) : (
-                  <div className="px-4 py-8 text-center">
-                    <p className="text-xs text-gray-400">Nenhuma notificação</p>
-                  </div>
-                )}
-                <div className="px-4 py-2.5 border-t border-gray-100 text-center">
-                  <Link
-                    to="/notificacoes"
-                    onClick={() => setNotifOpen(false)}
-                    className="text-xs text-[#E8501A] font-medium cursor-pointer hover:underline"
-                  >
-                    Ver todas as notificações →
-                  </Link>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {isAuthenticated && user ? (
+          {isAuthenticated && user && (
             <div className="relative">
               <button
-                onClick={() => setUserMenuOpen(!userMenuOpen)}
-                className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition-all cursor-pointer ${
-                  isLight ? "border-gray-200 hover:border-[#E8501A]" : "border-white/30 hover:border-white"
+                onClick={() => setNotifOpen(!notifOpen)}
+                className={`w-10 h-10 flex items-center justify-center rounded-full transition-colors cursor-pointer ${
+                  isLight
+                    ? "hover:bg-gray-100 text-[#374151]"
+                    : "hover:bg-white/10 text-white"
                 }`}
               >
-                <div className="w-7 h-7 flex items-center justify-center rounded-full bg-[#E8501A] flex-shrink-0 overflow-hidden">
-                  {user.avatar ? (
-                    <img src={user.avatar} alt={user.nome} className="w-full h-full object-cover" />
-                  ) : (
-                    <i className="ri-user-line text-white text-xs"></i>
-                  )}
-                </div>
-                <span className={`text-sm font-medium whitespace-nowrap max-w-[120px] truncate ${isLight ? "text-[#1A1A2E]" : "text-white"}`}>
-                  {user.nome.split(" ")[0]}
-                </span>
-                <div className="w-4 h-4 flex items-center justify-center">
-                  <i className={`ri-arrow-down-s-line text-sm ${isLight ? "text-gray-400" : "text-white/70"}`}></i>
-                </div>
+                <i className="ri-notification-3-line text-lg"></i>
+                {unreadCount > 0 && (
+                  <span className="absolute top-1.5 right-1.5 w-4 h-4 flex items-center justify-center bg-[#E8501A] text-white text-xs font-bold rounded-full leading-none">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
               </button>
-              {userMenuOpen && (
-                <div className="absolute right-0 top-12 w-56 bg-white rounded-2xl border border-gray-100 overflow-hidden z-50" style={{ boxShadow: "0 4px 24px rgba(0,0,0,0.10)" }}>
-                  <div className="px-4 py-3 border-b border-gray-100">
-                    <p className="text-sm font-semibold text-[#1A1A2E] truncate">{user.nome}</p>
-                    <p className="text-xs text-gray-400 truncate">{user.email}</p>
-                    <span className="inline-flex items-center gap-1 mt-1.5 text-xs bg-orange-50 text-[#E8501A] px-2 py-0.5 rounded-full font-medium">
-                      <i className={user.role === "estudante" ? "ri-graduation-cap-line" : "ri-building-2-line"}></i>
-                      {user.role === "estudante" ? "Estudante" : "Empresa"}
-                    </span>
-                  </div>
-                  <div className="py-1">
-                    <Link to="/perfil" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-[#374151] hover:bg-gray-50 cursor-pointer transition-colors">
-                      <div className="w-4 h-4 flex items-center justify-center"><i className="ri-user-line text-gray-400"></i></div>
-                      O meu perfil
-                    </Link>
-                    {user.role === "empresa" && (
-                      <Link to="/dashboard" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-[#374151] hover:bg-gray-50 cursor-pointer transition-colors">
-                        <div className="w-4 h-4 flex items-center justify-center"><i className="ri-dashboard-line text-gray-400"></i></div>
-                        Dashboard
-                      </Link>
-                    )}
-                    <Link to="/notificacoes" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-[#374151] hover:bg-gray-50 cursor-pointer transition-colors">
-                      <div className="w-4 h-4 flex items-center justify-center"><i className="ri-notification-3-line text-gray-400"></i></div>
-                      Notificações
-                      {unreadCount > 0 && <span className="ml-auto text-xs bg-[#E8501A] text-white font-bold px-1.5 py-0.5 rounded-full">{unreadCount}</span>}
+              {notifOpen && (
+                <div className="absolute right-0 top-12 w-80 bg-white rounded-2xl border border-gray-100 overflow-hidden z-50" style={{ boxShadow: "0 4px 24px rgba(0,0,0,0.10)" }}>
+                  <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-[#1A1A2E] text-sm">Notificações</span>
+                      {unreadCount > 0 && (
+                        <span className="text-xs bg-[#E8501A] text-white font-bold px-1.5 py-0.5 rounded-full">{unreadCount}</span>
+                      )}
+                    </div>
+                    <Link
+                      to="/notificacoes"
+                      onClick={() => setNotifOpen(false)}
+                      className="text-xs text-[#E8501A] font-medium cursor-pointer hover:underline whitespace-nowrap"
+                    >
+                      Ver painel
                     </Link>
                   </div>
-                  <div className="border-t border-gray-100 py-1">
-                    <button onClick={handleLogout} className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 cursor-pointer transition-colors">
-                      <div className="w-4 h-4 flex items-center justify-center"><i className="ri-logout-box-line"></i></div>
-                      Terminar sessão
-                    </button>
+                  {recentNotifs.length > 0 ? recentNotifs.map((n) => {
+                    const cfg = { icon: "ri-bell-line", bg: "bg-orange-50" };
+                    if (n.type === "candidatura") { cfg.icon = "ri-send-plane-line"; cfg.bg = "bg-orange-50"; }
+                    else if (n.type === "vaga") { cfg.icon = "ri-briefcase-line"; cfg.bg = "bg-violet-50"; }
+                    else if (n.type === "entrevista") { cfg.icon = "ri-calendar-check-line"; cfg.bg = "bg-emerald-50"; }
+                    else if (n.type === "perfil") { cfg.icon = "ri-user-line"; cfg.bg = "bg-amber-50"; }
+                    else if (n.type === "sistema") { cfg.icon = "ri-settings-3-line"; cfg.bg = "bg-gray-100"; }
+                    
+                    const timeStr = new Date(n.created_at).toLocaleTimeString('pt-AO', { hour: '2-digit', minute: '2-digit' });
+
+                    return (
+                      <div
+                        key={n.id}
+                        onClick={() => { markAsRead(n.id); setNotifOpen(false); }}
+                        className={`px-4 py-3 flex items-start gap-3 hover:bg-gray-50 cursor-pointer transition-colors block ${
+                          !n.is_read ? "bg-orange-50/40" : ""
+                        }`}
+                      >
+                        <div className={`w-8 h-8 flex items-center justify-center rounded-full ${cfg.bg} flex-shrink-0`}>
+                          <i className={`${cfg.icon} text-[#E8501A] text-sm`}></i>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-semibold text-[#1A1A2E] leading-snug truncate">{n.title}</p>
+                          <p className="text-[10px] text-gray-400 mt-0.5 line-clamp-2">{n.content}</p>
+                          <p className="text-[9px] text-gray-300 mt-1">{timeStr}</p>
+                        </div>
+                        {!n.is_read && <div className="w-2 h-2 bg-[#E8501A] rounded-full mt-1.5 flex-shrink-0"></div>}
+                      </div>
+                    );
+                  }) : (
+                    <div className="px-4 py-8 text-center">
+                      <p className="text-xs text-gray-400">Nenhuma notificação</p>
+                    </div>
+                  )}
+                  <div className="px-4 py-2.5 border-t border-gray-100 text-center">
+                    <Link
+                      to="/notificacoes"
+                      onClick={() => setNotifOpen(false)}
+                      className="text-xs text-[#E8501A] font-medium cursor-pointer hover:underline"
+                    >
+                      Ver todas as notificações →
+                    </Link>
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {isLoading ? (
+            <div className="flex items-center justify-center w-24 h-10">
+              <div className="w-5 h-5 border-2 border-[#E8501A] border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : isAuthenticated && user ? (
+            <div className="flex items-center gap-3">
+              <Link
+                to={user.role === "empresa" ? "/dashboard" : "/perfil"}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-all cursor-pointer ${
+                  isLight 
+                    ? "border-gray-200 text-[#1A1A2E] hover:border-[#E8501A] hover:bg-orange-50/20" 
+                    : "border-white/30 text-white hover:border-white hover:bg-white/10"
+                }`}
+              >
+                <i className={user.role === "empresa" ? "ri-dashboard-line text-base" : "ri-user-line text-base"}></i>
+                <span>{user.role === "empresa" ? "Dashboard" : "Meu Perfil"}</span>
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-red-50 text-red-600 hover:bg-red-100 transition-all cursor-pointer"
+              >
+                <i className="ri-logout-box-line text-base"></i>
+                <span>Sair</span>
+              </button>
             </div>
           ) : (
             <>
@@ -391,7 +360,11 @@ export default function Navbar() {
           </div>
 
           <div className="flex flex-col gap-2 pt-3 border-t border-gray-100 mt-3">
-            {isAuthenticated && user ? (
+            {isLoading ? (
+              <div className="flex justify-center py-2">
+                <div className="w-5 h-5 border-2 border-[#E8501A] border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            ) : isAuthenticated && user ? (
               <>
                 <div className="flex items-center gap-3 px-3 py-2 bg-orange-50 rounded-xl">
                   <div className="w-8 h-8 flex items-center justify-center rounded-full bg-[#E8501A] flex-shrink-0">
@@ -402,11 +375,18 @@ export default function Navbar() {
                     <p className="text-xs text-gray-400 truncate">{user.role === "estudante" ? "Estudante" : "Empresa"}</p>
                   </div>
                 </div>
-                <Link to="/perfil" onClick={() => setMenuOpen(false)} className="text-sm font-medium text-center py-2.5 rounded-lg border border-gray-200 text-[#374151] hover:border-[#E8501A] hover:text-[#E8501A] transition-all whitespace-nowrap cursor-pointer">
-                  O meu perfil
+                <Link 
+                  to={user.role === "empresa" ? "/dashboard" : "/perfil"} 
+                  onClick={() => setMenuOpen(false)} 
+                  className="text-sm font-semibold text-center py-2.5 rounded-xl border border-gray-200 text-[#374151] hover:border-[#E8501A] hover:text-[#E8501A] transition-all whitespace-nowrap cursor-pointer"
+                >
+                  {user.role === "empresa" ? "Dashboard / Painel" : "Meu Perfil"}
                 </Link>
-                <button onClick={() => { handleLogout(); setMenuOpen(false); }} className="text-sm font-medium text-center py-2.5 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-all whitespace-nowrap cursor-pointer">
-                  Terminar sessão
+                <button 
+                  onClick={() => { handleLogout(); setMenuOpen(false); }} 
+                  className="text-sm font-semibold text-center py-2.5 rounded-xl bg-red-50 text-red-500 hover:bg-red-100 transition-all whitespace-nowrap cursor-pointer w-full"
+                >
+                  Terminar sessão (Sair)
                 </button>
               </>
             ) : (

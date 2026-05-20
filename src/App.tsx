@@ -3,6 +3,7 @@ import { AppRoutes } from "./router";
 import { I18nextProvider } from "react-i18next";
 import i18n from "./i18n";
 import { AuthProvider } from "./hooks/useAuth";
+import CookieBanner from "./components/feature/CookieBanner";
 
 
 function App() {
@@ -11,6 +12,7 @@ function App() {
       <AuthProvider>
         <BrowserRouter basename={__BASE_PATH__}>
           <AppRoutes />
+          <CookieBanner />
         </BrowserRouter>
       </AuthProvider>
     </I18nextProvider>

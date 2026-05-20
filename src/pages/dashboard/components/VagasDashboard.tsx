@@ -35,6 +35,7 @@ function PublicarVagaModal({ onClose, onRefresh }: { onClose: () => void; onRefr
     description: "",
     requirements: "",
     benefits: "",
+    vacancies_count: 1,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -58,6 +59,7 @@ function PublicarVagaModal({ onClose, onRefresh }: { onClose: () => void; onRefr
           description: formData.description,
           requirements: formData.requirements,
           benefits: formData.benefits,
+          vacancies_count: Number(formData.vacancies_count) || 1,
           status: 'Activa'
         });
 
@@ -146,16 +148,27 @@ function PublicarVagaModal({ onClose, onRefresh }: { onClose: () => void; onRefr
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-[#1A1A2E] uppercase tracking-wider mb-2">Província *</label>
-                  <select 
+                  <label className="block text-xs font-bold text-[#1A1A2E] uppercase tracking-wider mb-2">Vagas Disponíveis *</label>
+                  <input 
                     required 
-                    value={formData.province}
-                    onChange={e => setFormData({...formData, province: e.target.value})}
-                    className="w-full border border-gray-200 rounded-2xl px-5 py-3.5 text-sm focus:outline-none focus:border-[#E8501A] appearance-none bg-gray-50/50 cursor-pointer"
-                  >
-                    {["Luanda","Benguela","Huambo","Cabinda","Namibe"].map((p) => <option key={p} value={p}>{p}</option>)}
-                  </select>
+                    type="number" 
+                    min={1}
+                    value={formData.vacancies_count}
+                    onChange={e => setFormData({...formData, vacancies_count: Math.max(1, parseInt(e.target.value) || 1)})}
+                    className="w-full border border-gray-200 rounded-2xl px-5 py-3.5 text-sm focus:outline-none focus:border-[#E8501A] transition-all bg-gray-50/50 focus:bg-white" 
+                  />
                 </div>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-[#1A1A2E] uppercase tracking-wider mb-2">Província *</label>
+                <select 
+                  required 
+                  value={formData.province}
+                  onChange={e => setFormData({...formData, province: e.target.value})}
+                  className="w-full border border-gray-200 rounded-2xl px-5 py-3.5 text-sm focus:outline-none focus:border-[#E8501A] appearance-none bg-gray-50/50 cursor-pointer"
+                >
+                  {["Luanda","Benguela","Huambo","Cabinda","Namibe"].map((p) => <option key={p} value={p}>{p}</option>)}
+                </select>
               </div>
               <div>
                 <label className="block text-xs font-bold text-[#1A1A2E] uppercase tracking-wider mb-2">Descrição da Vaga *</label>
@@ -216,6 +229,35 @@ export default function VagasDashboard({ vagas, onVerCandidatos, onRefresh }: Va
   const [showModal, setShowModal] = useState(false);
 
   const filtered = filterStatus === "Todas" ? vagas : vagas.filter((v) => v.status === filterStatus);
+
+  const toggleStatus = async (vaga: any) => {
+    const newStatus = vaga.status === 'Activa' ? 'Encerrada' : 'Activa';
+    
+    try {
+      const { error } = await supabase
+        .from('internships')
+        .update({ status: newStatus })
+        .eq('id', vaga.id);
+        
+      if (error) throw error;
+      
+      Swal.fire({
+        icon: 'success',
+        title: 'Estado atualizado!',
+        text: `A vaga foi ${newStatus === 'Encerrada' ? 'encerrada' : 'reaberta'} com sucesso.`,
+        confirmButtonColor: '#E8501A'
+      });
+      onRefresh();
+    } catch (err: any) {
+      console.error(err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro ao atualizar',
+        text: err.message || "Ocorreu um erro ao tentar alterar o estado da vaga.",
+        confirmButtonColor: '#E8501A'
+      });
+    }
+  };
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -280,6 +322,10 @@ export default function VagasDashboard({ vagas, onVerCandidatos, onRefresh }: Va
                         <i className="ri-time-line text-[#E8501A] text-xs font-bold"></i>
                         <span className="text-xs text-gray-600 font-bold">{vaga.duration}</span>
                       </div>
+                      <div className="flex items-center gap-1.5">
+                        <i className="ri-team-line text-[#E8501A] text-xs font-bold"></i>
+                        <span className="text-xs text-gray-600 font-bold">{vaga.vacancies_count || 1} {vaga.vacancies_count > 1 ? 'vagas' : 'vaga'}</span>
+                      </div>
                     </div>
                   </div>
                   
@@ -291,9 +337,22 @@ export default function VagasDashboard({ vagas, onVerCandidatos, onRefresh }: Va
                       Ver Candidatos
                       <i className="ri-arrow-right-line"></i>
                     </button>
-                    <button className="w-12 h-12 flex items-center justify-center bg-gray-50 hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-2xl transition-all cursor-pointer">
-                      <i className="ri-delete-bin-line text-lg"></i>
-                    </button>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => toggleStatus(vaga)}
+                        title={vaga.status === 'Activa' ? 'Encerrar Vaga' : 'Reabrir Vaga'}
+                        className={`w-12 h-12 flex items-center justify-center rounded-2xl transition-all cursor-pointer ${
+                          vaga.status === 'Activa' 
+                            ? "bg-amber-50 hover:bg-amber-100 text-amber-600 hover:text-amber-700" 
+                            : "bg-emerald-50 hover:bg-emerald-100 text-emerald-600 hover:text-emerald-700"
+                        }`}
+                      >
+                        <i className={`text-lg ${vaga.status === 'Activa' ? 'ri-lock-2-line' : 'ri-lock-unlock-line'}`}></i>
+                      </button>
+                      <button title="Eliminar Vaga" className="w-12 h-12 flex items-center justify-center bg-gray-50 hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-2xl transition-all cursor-pointer">
+                        <i className="ri-delete-bin-line text-lg"></i>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

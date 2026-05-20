@@ -21,47 +21,21 @@ const provinciaOptions = [
 ];
 
 const medioCourses = [
-  "Técnico de Informática", "Técnico de Programação", "Técnico de Redes Informáticas", "Técnico de Sistemas Informáticos",
-  "Técnico de Base de Dados", "Técnico de Cibersegurança", "Técnico de Multimédia", "Técnico de Design Gráfico",
-  "Técnico de Electrónica", "Técnico de Telecomunicações", "Técnico de Electricidade Industrial", "Técnico de Electromecânica",
-  "Técnico de Mecânica Industrial", "Técnico de Mecânica Auto", "Técnico de Mecatrónica", "Técnico de Frio e Climatização",
-  "Técnico de Energias Renováveis", "Técnico de Automação Industrial", "Técnico de Instrumentação Industrial", "Técnico de Soldadura",
-  "Técnico de Construção Civil", "Técnico de Obras Públicas", "Técnico de Topografia", "Técnico de Desenho de Construção Civil",
-  "Técnico de Hidráulica", "Técnico de Saneamento", "Técnico de Urbanismo", "Técnico de Carpintaria", "Técnico de Canalização",
-  "Técnico de Pintura de Construção", "Técnico de Geologia", "Técnico de Minas", "Técnico de Petróleo e Gás", "Técnico de Perfuração Petrolífera",
-  "Técnico de Refinação", "Técnico de Metalurgia", "Técnico de Química Industrial", "Técnico de Ambiente", "Técnico de Laboratório Industrial",
-  "Técnico de Segurança Industrial", "Técnico de Administração Pública", "Técnico de Administração e Gestão", "Técnico de Contabilidade",
-  "Técnico de Finanças", "Técnico de Comércio", "Técnico de Gestão Empresarial", "Técnico de Recursos Humanos", "Técnico de Marketing",
-  "Técnico de Secretariado", "Técnico de Estatística", "Técnico de Planeamento", "Técnico de Gestão Bancária", "Técnico de Logística",
-  "Técnico de Procurement", "Técnico de Seguros", "Técnico de Empreendedorismo", "Técnico de Comunicação Social", "Técnico de Jornalismo",
-  "Técnico de Produção de Eventos", "Técnico de Relações Públicas", "Técnico de Turismo", "Técnico de Hotelaria", "Técnico de Restauração",
-  "Técnico de Cozinha", "Técnico de Pastelaria", "Técnico de Guia Turístico", "Técnico Agrário", "Técnico de Produção Animal",
-  "Técnico de Veterinária", "Técnico Florestal", "Técnico de Irrigação", "Técnico de Agropecuária", "Técnico de Pescas", "Técnico de Aquicultura",
-  "Técnico de Agricultura Sustentável", "Técnico Médio de Enfermagem", "Técnico de Análises Clínicas", "Técnico de Farmácia",
-  "Técnico de Radiologia", "Técnico de Saúde Ambiental", "Técnico de Fisioterapia", "Técnico de Nutrição", "Técnico de Saúde Pública",
-  "Técnico de Estomatologia", "Técnico de Hemoterapia", "Técnico de Música", "Técnico de Artes Visuais", "Técnico de Teatro",
-  "Técnico de Dança", "Técnico de Moda", "Técnico de Design de Interiores", "Técnico de Educação Física", "Técnico de Desporto",
-  "Técnico de Arbitragem", "Técnico de Segurança no Trabalho", "Técnico de Protecção Civil", "Técnico de Bombeiros", "Técnico Aduaneiro",
-  "Técnico de Transporte Marítimo", "Técnico de Aviação Civil"
+  "Recursos Humanos",
+  "Estatística e Planeamento",
+  "Gestão Comercial e Marketing",
+  "Administração Pública",
+  "Informática de Gestão",
+  "Administração Local e Autárquica"
 ];
 
 const superiorCourses = [
-  "Medicina", "Enfermagem", "Farmácia", "Odontologia", "Psicologia", "Fisioterapia", "Nutrição", "Saúde Pública",
-  "Análises Clínicas", "Radiologia", "Direito", "Relações Internacionais", "Ciência Política", "Administração Pública",
-  "Sociologia", "Filosofia", "História", "Antropologia", "Serviço Social", "Criminologia", "Gestão de Empresas",
-  "Contabilidade e Auditoria", "Economia", "Finanças", "Gestão Bancária", "Marketing", "Recursos Humanos", "Gestão Comercial",
-  "Comércio Exterior", "Logística", "Empreendedorismo", "Gestão de Projectos", "Engenharia Informática", "Engenharia de Software",
-  "Ciência da Computação", "Sistemas de Informação", "Engenharia de Redes", "Cibersegurança", "Inteligência Artificial",
-  "Ciência de Dados", "Engenharia Electrotécnica", "Engenharia Electrónica", "Engenharia Mecânica", "Engenharia Civil",
-  "Engenharia Química", "Engenharia Ambiental", "Engenharia Industrial", "Engenharia de Minas", "Engenharia Petrolífera",
-  "Engenharia Agronómica", "Engenharia Florestal", "Engenharia Hidráulica", "Engenharia de Energias Renováveis",
-  "Arquitectura e Urbanismo", "Urbanismo", "Design Industrial", "Matemática", "Física", "Química", "Biologia", "Geologia",
-  "Estatística", "Actuariado", "Língua Portuguesa", "Língua Inglesa", "Língua Francesa", "Linguística", "Tradução e Interpretação",
-  "Jornalismo", "Comunicação Social", "Cinema e Audiovisual", "Publicidade e Propaganda", "Relações Públicas", "Turismo e Hotelaria",
-  "Gastronomia", "Educação Física", "Ciências do Desporto", "Treino Desportivo", "Arbitragem Desportiva", "Música", "Teatro",
-  "Dança", "Artes Visuais", "Moda e Estilismo", "Design Gráfico", "Design de Interiores", "Pedagogia", "Ciências da Educação",
-  "Educação de Infância", "Ensino Primário", "Matemática Educacional", "Física Educacional", "Química Educacional",
-  "Biologia Educacional", "Geografia", "Gestão Ambiental", "Oceanografia", "Meteorologia", "Aviação Civil", "Gestão Portuária e Marítima"
+  "Recursos Humanos",
+  "Estatística e Planeamento",
+  "Gestão Comercial e Marketing",
+  "Administração Pública",
+  "Informática de Gestão",
+  "Administração Local e Autárquica"
 ];
 
 const sectorsOptions = [
@@ -98,6 +72,73 @@ export default function EditarPerfilTab({ perfil }: EditarPerfilTabProps) {
     setLoading(true);
     const table = user.role === "estudante" ? "students" : "companies";
     let updatedData = { ...formData };
+
+    // Validation
+    if (user.role === "estudante") {
+      if (!updatedData.full_name?.trim()) {
+        Swal.fire({ icon: 'error', title: 'Erro de Validação', text: 'Nome completo é obrigatório', confirmButtonColor: '#E8501A' });
+        setLoading(false);
+        return;
+      }
+      if (!updatedData.phone?.trim()) {
+        Swal.fire({ icon: 'error', title: 'Erro de Validação', text: 'Telemóvel é obrigatório', confirmButtonColor: '#E8501A' });
+        setLoading(false);
+        return;
+      } else if (!/^(\+244\s?)?9[1-9][0-9]{7}$/.test(updatedData.phone.trim().replace(/\s/g, ''))) {
+        Swal.fire({ icon: 'error', title: 'Erro de Validação', text: 'Número de telemóvel inválido. Formatos válidos: 9XXXXXXXX ou +244 9XXXXXXXX', confirmButtonColor: '#E8501A' });
+        setLoading(false);
+        return;
+      }
+      if (!updatedData.province) {
+        Swal.fire({ icon: 'error', title: 'Erro de Validação', text: 'Província é obrigatória', confirmButtonColor: '#E8501A' });
+        setLoading(false);
+        return;
+      }
+      if (!updatedData.process_number?.trim()) {
+        Swal.fire({ icon: 'error', title: 'Erro de Validação', text: 'Número de processo é obrigatório', confirmButtonColor: '#E8501A' });
+        setLoading(false);
+        return;
+      } else if (!/^\d{4,12}$/.test(updatedData.process_number.trim())) {
+        Swal.fire({ icon: 'error', title: 'Erro de Validação', text: 'Número de processo deve ter entre 4 e 12 dígitos', confirmButtonColor: '#E8501A' });
+        setLoading(false);
+        return;
+      }
+      if (!updatedData.course) {
+        Swal.fire({ icon: 'error', title: 'Erro de Validação', text: 'Curso é obrigatório', confirmButtonColor: '#E8501A' });
+        setLoading(false);
+        return;
+      }
+      if (!updatedData.academic_year) {
+        Swal.fire({ icon: 'error', title: 'Erro de Validação', text: 'Ano/Classe é obrigatório', confirmButtonColor: '#E8501A' });
+        setLoading(false);
+        return;
+      }
+
+      // Check unique process number if changed
+      if (updatedData.process_number.trim() !== perfil.process_number) {
+        const { data: existingProcess, error: procError } = await supabase
+          .from('students')
+          .select('id')
+          .eq('process_number', updatedData.process_number.trim())
+          .neq('id', user.id)
+          .maybeSingle();
+
+        if (procError) {
+          console.error("Erro na verificação de processo:", procError);
+        }
+
+        if (existingProcess) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Número de Processo Duplicado',
+            text: 'Este número de processo já está em uso por outro estudante.',
+            confirmButtonColor: '#E8501A'
+          });
+          setLoading(false);
+          return;
+        }
+      }
+    }
 
     // Handle File Upload if exists
     if (avatarFile) {
@@ -139,10 +180,15 @@ export default function EditarPerfilTab({ perfil }: EditarPerfilTabProps) {
         window.location.reload(); // Refresh to show new avatar everywhere
       }, 2000);
     } else {
+      let errorMessage = error.message;
+      if (error.message.includes("students_process_number_key") || error.message.includes("duplicate key")) {
+        errorMessage = "Este número de processo já está a ser utilizado por outro estudante. Verifica o teu número e tenta novamente.";
+      }
+      
       Swal.fire({
         icon: 'error',
-        title: 'Erro ao salvar',
-        text: error.message,
+        title: 'Número de Processo Duplicado',
+        text: errorMessage,
         confirmButtonColor: '#E8501A'
       });
     }
@@ -248,7 +294,7 @@ export default function EditarPerfilTab({ perfil }: EditarPerfilTabProps) {
                   <input
                     type="tel"
                     value={formData.phone || ""}
-                    onChange={(e) => handleChange("phone", e.target.value)}
+                    onChange={(e) => handleChange("phone", e.target.value.replace(/[^\d\s+]/g, ""))}
                     className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#E8501A]"
                   />
                 </div>
@@ -280,6 +326,16 @@ export default function EditarPerfilTab({ perfil }: EditarPerfilTabProps) {
           {activeSection === "academico" && user?.role === "estudante" && (
             <div className="space-y-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-medium text-[#1A1A2E] mb-1.5">Número de Processo (IPAS)</label>
+                  <input
+                    type="text"
+                    value={formData.process_number || ""}
+                    onChange={(e) => handleChange("process_number", e.target.value)}
+                    placeholder="Ex: 20240123"
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#E8501A]"
+                  />
+                </div>
                 <div className="sm:col-span-2">
                    <label className="block text-sm font-medium text-[#1A1A2E] mb-1.5">Nível de Ensino</label>
                    <div className="flex bg-gray-50 rounded-xl p-1 border border-gray-100">

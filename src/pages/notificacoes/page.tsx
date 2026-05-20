@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import {
   categoriaConfig,
   type NotifCategoria,
+  type NotifRole,
 } from "@/mocks/notificacoes";
 
 export interface Notification {

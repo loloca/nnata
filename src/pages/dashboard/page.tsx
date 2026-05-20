@@ -184,7 +184,7 @@ export default function DashboardPage() {
               >
                 <div className="w-8 h-8 rounded-xl bg-[#E8501A] flex items-center justify-center text-white font-bold overflow-hidden border border-gray-100">
                   {companyData.logo_url ? (
-                    <img src={companyData.logo_url} alt={companyData.name} className="w-full h-full object-cover" />
+                    <img src={companyData.logo_url} alt={companyData.name} className="w-full h-full object-contain bg-white" />
                   ) : (
                     companyData.name[0]
                   )}

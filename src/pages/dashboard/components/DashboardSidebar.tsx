@@ -28,12 +28,12 @@ export default function DashboardSidebar({ empresa, activeTab, onTabChange, novo
           <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
         </div>
         <div className="px-5 pb-5">
-          <div className="-mt-8 mb-3 flex items-end justify-between">
-            <div className="w-16 h-16 rounded-2xl overflow-hidden border-4 border-white bg-white flex-shrink-0 flex items-center justify-center">
+          <div className="-mt-10 mb-3 flex items-end justify-between">
+            <div className="w-20 h-20 rounded-2xl overflow-hidden border-4 border-white bg-white flex-shrink-0 flex items-center justify-center shadow-sm">
               {empresa.logo_url ? (
-                <img src={empresa.logo_url} alt={empresa.name} className="w-full h-full object-cover" />
+                <img src={empresa.logo_url} alt={empresa.name} className="w-full h-full object-contain p-1.5" />
               ) : (
-                <span className="text-xl font-bold text-[#E8501A]">{empresa.name[0]}</span>
+                <span className="text-2xl font-bold text-[#E8501A]">{empresa.name[0]}</span>
               )}
             </div>
             <span className="text-xs bg-emerald-50 text-emerald-700 font-medium px-2.5 py-1 rounded-full border border-emerald-100 whitespace-nowrap">

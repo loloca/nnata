@@ -75,6 +75,75 @@ export default function VisaoGeralTab({ perfil, projetos = [], candidaturas = []
 
   return (
     <div className="space-y-6">
+      {/* Cartão de Identificação Académica IPAS */}
+      <div className="relative overflow-hidden rounded-2xl border border-gray-800/10 bg-gradient-to-br from-[#1A1A2E] via-[#2D2D44] to-[#12121E] p-6 text-white shadow-lg animate-in fade-in slide-in-from-top-4 duration-500">
+        {/* Glow effect */}
+        <div className="absolute -right-16 -top-16 w-48 h-48 rounded-full bg-[#E8501A] opacity-20 blur-3xl"></div>
+        <div className="absolute -left-16 -bottom-16 w-48 h-48 rounded-full bg-orange-600 opacity-10 blur-3xl"></div>
+
+        {/* Card Header */}
+        <div className="flex items-center justify-between pb-5 border-b border-white/10">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-[#E8501A] to-[#C73E0C]">
+              <i className="ri-graduation-cap-fill text-white text-xl"></i>
+            </div>
+            <div>
+              <h4 className="font-bold text-sm tracking-wide">CARTÃO ACADÉMICO</h4>
+              <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">EstagiAngola · IPAS</p>
+            </div>
+          </div>
+          <div className="text-right">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#E8501A]/20 text-[#E8501A] border border-[#E8501A]/30">
+              IPAS OFICIAL
+            </span>
+          </div>
+        </div>
+
+        {/* Card Body */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-5">
+          <div className="space-y-4">
+            <div>
+              <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Estudante</p>
+              <p className="text-base font-bold text-white mt-0.5">{perfil.full_name}</p>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Curso</p>
+              <p className="text-sm font-semibold text-white mt-0.5">{perfil.course || "Não definido"}</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Nº de Processo</p>
+              <p className="text-sm font-black text-orange-400 mt-0.5 tracking-wider">{perfil.process_number || "Não definido"}</p>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Instituição</p>
+              <p className="text-sm font-semibold text-white mt-0.5">IPAS</p>
+            </div>
+            <div className="col-span-2">
+              <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Estado da Candidatura</p>
+              {candidaturas && candidaturas.length > 0 ? (
+                <div className="flex items-center gap-2 mt-1">
+                  <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${
+                    statusColors[candidaturas[0].status]?.bg || 'bg-gray-700'
+                  } ${
+                    statusColors[candidaturas[0].status]?.color || 'text-white'
+                  }`}>
+                    {candidaturas[0].status}
+                  </span>
+                  <span className="text-[10px] text-gray-300 truncate max-w-[150px]">
+                    em {candidaturas[0].vagaTitle}
+                  </span>
+                </div>
+              ) : (
+                <p className="text-xs text-gray-400 mt-1">Nenhuma candidatura activa</p>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* About */}
       <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
         <div className="flex items-center justify-between mb-4">

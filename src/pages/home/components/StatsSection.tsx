@@ -11,22 +11,32 @@ export default function StatsSection() {
 
   useEffect(() => {
     const fetchCounts = async () => {
-      const [
-        { count: studentsCount },
-        { count: companiesCount },
-        { count: internshipsCount }
-      ] = await Promise.all([
-        supabase.from('students').select('*', { count: 'exact', head: true }),
-        supabase.from('companies').select('*', { count: 'exact', head: true }),
-        supabase.from('internships').select('*', { count: 'exact', head: true })
-      ]);
+      try {
+        const [
+          { count: studentsCount },
+          { count: companiesCount },
+          { count: internshipsCount }
+        ] = await Promise.all([
+          supabase.from('students').select('*', { count: 'exact', head: true }),
+          supabase.from('companies').select('*', { count: 'exact', head: true }),
+          supabase.from('internships').select('*', { count: 'exact', head: true })
+        ]);
 
-      setCounts({
-        estudantes: studentsCount || 0,
-        empresas: companiesCount || 0,
-        vagas: internshipsCount || 0,
-        contratacoes: 34
-      });
+        setCounts({
+          estudantes: studentsCount || 0,
+          empresas: companiesCount || 0,
+          vagas: internshipsCount || 0,
+          contratacoes: 34
+        });
+      } catch (error) {
+        console.error("Erro ao carregar estatísticas do banco de dados:", error);
+        setCounts({
+          estudantes: 0,
+          empresas: 0,
+          vagas: 0,
+          contratacoes: 34
+        });
+      }
     };
 
     fetchCounts();

@@ -34,40 +34,45 @@ export default function VagasPage() {
 
   useEffect(() => {
     const fetchVagas = async () => {
-      const { supabase } = await import("@/lib/supabase");
-      const { data, error } = await supabase
-        .from('internships')
-        .select(`
-          *,
-          companies (
-            name,
-            logo_url
-          )
-        `)
-        .eq('status', 'Activa');
+      try {
+        const { supabase } = await import("@/lib/supabase");
+        const { data, error } = await supabase
+          .from('internships')
+          .select(`
+            *,
+            companies (
+              name,
+              logo_url
+            )
+          `)
+          .eq('status', 'Activa');
 
-      if (!error && data) {
-        // Map Supabase data to Vaga type
-        const mapped: Vaga[] = data.map(item => ({
-          id: item.id,
-          title: item.title,
-          company: item.companies?.name || "Empresa",
-          companyLogo: item.companies?.logo_url || "https://readdy.ai/api/search-image?query=company%20logo%20abstract&width=56&height=56",
-          area: item.area,
-          province: item.province,
-          duration: item.duration,
-          type: item.type || "Presencial",
-          sector: item.sector || "Geral",
-          description: item.description,
-          requirements: item.requirements ? item.requirements.split('\n') : [],
-          benefits: item.benefits ? item.benefits.split('\n') : [],
-          postedDaysAgo: Math.floor((new Date().getTime() - new Date(item.created_at).getTime()) / (1000 * 3600 * 24)),
-          applicants: item.applicants_count || 0,
-          featured: item.is_featured,
-        }));
-        setVagas(mapped);
+        if (!error && data) {
+          // Map Supabase data to Vaga type
+          const mapped: Vaga[] = data.map(item => ({
+            id: item.id,
+            title: item.title,
+            company: item.companies?.name || "Empresa",
+            companyLogo: item.companies?.logo_url || "https://readdy.ai/api/search-image?query=company%20logo%20abstract&width=56&height=56",
+            area: item.area,
+            province: item.province,
+            duration: item.duration,
+            type: item.type || "Presencial",
+            sector: item.sector || "Geral",
+            description: item.description,
+            requirements: item.requirements ? item.requirements.split('\n') : [],
+            benefits: item.benefits ? item.benefits.split('\n') : [],
+            postedDaysAgo: Math.floor((new Date().getTime() - new Date(item.created_at).getTime()) / (1000 * 3600 * 24)),
+            applicants: item.applicants_count || 0,
+            featured: item.is_featured,
+          }));
+          setVagas(mapped);
+        }
+      } catch (error) {
+        console.error("Erro ao carregar vagas do banco de dados:", error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     fetchVagas();

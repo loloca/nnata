@@ -112,13 +112,13 @@ export default function PerfilEmpresaDashboard({ empresa: initialEmpresa }: Perf
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
         <div>
-          <h2 className="font-extrabold text-[#1A1A2E] text-2xl tracking-tight">Perfil da Empresa</h2>
-          <p className="text-sm text-gray-500 mt-1 font-medium">Mantém as tuas informações actualizadas para atrair talentos.</p>
+          <h2 className="font-extrabold text-[#1A1A2E] text-xl sm:text-2xl tracking-tight">Perfil da Empresa</h2>
+          <p className="text-xs sm:text-sm text-gray-500 mt-1 font-medium">Mantém as tuas informações actualizadas para atrair talentos.</p>
         </div>
-        <span className="flex items-center gap-1.5 text-[10px] bg-emerald-50 text-emerald-700 border-2 border-emerald-100 px-4 py-2 rounded-2xl font-black uppercase tracking-widest">
-          <i className="ri-shield-check-line"></i> Verificada
+        <span className="flex items-center gap-1.5 text-[9px] sm:text-[10px] bg-emerald-50 text-emerald-700 border-2 border-emerald-100 px-3 sm:px-4 py-1.5 sm:py-2 rounded-2xl font-black uppercase tracking-widest w-fit">
+          <i className="ri-shield-check-line text-base sm:text-sm"></i> Verificada
         </span>
       </div>
 
@@ -145,8 +145,8 @@ export default function PerfilEmpresaDashboard({ empresa: initialEmpresa }: Perf
             {uploading === "cover" ? "A carregar..." : "Alterar Capa"}
           </button>
         </div>
-        <div className="px-10 pb-8 flex items-end gap-6 -mt-12">
-          <div className="relative group">
+        <div className="px-4 sm:px-10 pb-6 sm:pb-8 flex flex-col sm:flex-row items-center sm:items-end gap-4 sm:gap-6 -mt-16 sm:-mt-12">
+          <div className="relative group z-10 flex-shrink-0">
             <input 
               type="file" 
               ref={logoInputRef} 
@@ -154,52 +154,54 @@ export default function PerfilEmpresaDashboard({ empresa: initialEmpresa }: Perf
               accept="image/*"
               onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0], "logo")}
             />
-            <div className="w-32 h-32 rounded-[32px] overflow-hidden border-8 border-white bg-white shadow-xl flex items-center justify-center">
+            <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-[24px] sm:rounded-[32px] overflow-hidden border-4 sm:border-8 border-white bg-white shadow-xl flex items-center justify-center">
               {uploading === "logo" ? (
-                <div className="w-10 h-10 border-4 border-[#E8501A] border-t-transparent rounded-full animate-spin"></div>
+                <div className="w-8 h-8 sm:w-10 sm:h-10 border-4 border-[#E8501A] border-t-transparent rounded-full animate-spin"></div>
               ) : empresa.logo_url ? (
                 <img src={empresa.logo_url} alt={empresa.name} className="w-full h-full object-cover" />
               ) : (
-                <span className="text-4xl font-black text-[#E8501A]">{empresa.name[0]}</span>
+                <span className="text-3xl sm:text-4xl font-black text-[#E8501A]">{empresa.name[0]}</span>
               )}
             </div>
             <button 
               onClick={() => logoInputRef.current?.click()}
               disabled={uploading === "logo"}
-              className="absolute -bottom-2 -right-2 w-10 h-10 flex items-center justify-center bg-[#E8501A] text-white rounded-2xl cursor-pointer hover:bg-[#C73E0C] transition-all shadow-lg shadow-orange-900/20 disabled:opacity-50"
+              className="absolute -bottom-2 -right-2 w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center bg-[#E8501A] text-white rounded-xl sm:rounded-2xl cursor-pointer hover:bg-[#C73E0C] transition-all shadow-lg shadow-orange-900/20 disabled:opacity-50"
             >
-              <i className="ri-camera-line text-lg"></i>
+              <i className="ri-camera-line text-base sm:text-lg"></i>
             </button>
           </div>
-          <div className="pb-2">
-            <h3 className="font-black text-[#1A1A2E] text-2xl leading-tight">{empresa.name}</h3>
-            <p className="text-sm text-gray-500 font-bold flex items-center gap-2 mt-1">
+          <div className="pb-0 sm:pb-2 text-center sm:text-left flex-1 min-w-0 w-full">
+            <h3 className="font-black text-[#1A1A2E] text-xl sm:text-2xl leading-tight truncate">{empresa.name}</h3>
+            <p className="text-xs sm:text-sm text-gray-500 font-bold flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 mt-1.5 flex-wrap">
               <i className="ri-building-line text-[#E8501A]"></i>
-              {empresa.sector} · {empresa.province}
+              <span className="truncate">{empresa.sector}</span>
+              <span className="text-gray-300">•</span>
+              <span className="truncate">{empresa.province}</span>
             </p>
           </div>
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-8">
-        <div className="flex lg:flex-col gap-2 lg:w-64 flex-shrink-0 overflow-x-auto lg:overflow-visible pb-4 lg:pb-0">
+      <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+        <div className="flex lg:flex-col gap-2 lg:w-64 flex-shrink-0 overflow-x-auto pb-4 lg:pb-0 -mx-4 px-4 lg:mx-0 lg:px-0 [&::-webkit-scrollbar]:hidden">
           {sections.map((s) => (
             <button
               key={s.id}
               onClick={() => setActiveSection(s.id)}
-              className={`flex items-center gap-3 px-6 py-4 rounded-2xl text-sm font-bold transition-all cursor-pointer whitespace-nowrap border-2 ${
+              className={`flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap border-2 ${
                 activeSection === s.id 
                   ? "bg-[#1A1A2E] border-[#1A1A2E] text-white shadow-lg" 
                   : "bg-white border-gray-50 text-gray-500 hover:border-[#E8501A]/30"
               }`}
             >
-              <i className={`${s.icon} text-lg`}></i>
+              <i className={`${s.icon} text-base sm:text-lg`}></i>
               {s.label}
             </button>
           ))}
         </div>
 
-        <form onSubmit={handleSave} className="flex-1 bg-white rounded-[32px] border border-gray-100 p-8 shadow-sm">
+        <form onSubmit={handleSave} className="flex-1 bg-white rounded-2xl sm:rounded-[32px] border border-gray-100 p-5 sm:p-8 shadow-sm">
           {activeSection === "info" && (
             <div className="space-y-6">
               <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-8">Informações Gerais</h3>
@@ -284,17 +286,17 @@ export default function PerfilEmpresaDashboard({ empresa: initialEmpresa }: Perf
             </div>
           )}
 
-          <div className="flex items-center justify-between mt-10 pt-8 border-t-2 border-gray-50">
+          <div className="flex flex-col-reverse sm:flex-row items-center justify-between mt-8 sm:mt-10 pt-6 sm:pt-8 border-t-2 border-gray-50 gap-4">
             {saved ? (
-              <div className="flex items-center gap-2 text-xs text-emerald-600 font-black uppercase tracking-widest animate-in fade-in slide-in-from-left-2">
+              <div className="flex items-center gap-2 text-xs text-emerald-600 font-black uppercase tracking-widest animate-in fade-in slide-in-from-left-2 w-full sm:w-auto justify-center sm:justify-start">
                 <i className="ri-checkbox-circle-fill text-lg"></i>
                 Perfil actualizado!
               </div>
-            ) : <div></div>}
+            ) : <div className="hidden sm:block"></div>}
             <button 
               type="submit" 
               disabled={loading}
-              className="flex items-center gap-3 bg-[#E8501A] disabled:opacity-50 text-white px-8 py-4 rounded-2xl text-sm font-black shadow-xl shadow-orange-900/20 hover:scale-105 transition-all cursor-pointer whitespace-nowrap"
+              className="flex items-center justify-center gap-3 bg-[#E8501A] disabled:opacity-50 text-white px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl text-sm font-black shadow-xl shadow-orange-900/20 hover:scale-105 transition-all cursor-pointer w-full sm:w-auto"
             >
               {loading ? "A Guardar..." : (
                 <>

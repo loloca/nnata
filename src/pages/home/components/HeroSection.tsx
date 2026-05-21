@@ -12,11 +12,16 @@ export default function HeroSection() {
 
   useEffect(() => {
     const fetchCounts = async () => {
-      const [{ count: vCount }, { count: eCount }] = await Promise.all([
-        supabase.from('internships').select('*', { count: 'exact', head: true }),
-        supabase.from('companies').select('*', { count: 'exact', head: true })
-      ]);
-      setCounts({ vagas: vCount || 0, empresas: eCount || 0 });
+      try {
+        const [{ count: vCount }, { count: eCount }] = await Promise.all([
+          supabase.from('internships').select('*', { count: 'exact', head: true }),
+          supabase.from('companies').select('*', { count: 'exact', head: true })
+        ]);
+        setCounts({ vagas: vCount || 0, empresas: eCount || 0 });
+      } catch (error) {
+        console.error("Erro ao carregar contagens do banco de dados:", error);
+        setCounts({ vagas: 0, empresas: 0 });
+      }
     };
     fetchCounts();
   }, []);

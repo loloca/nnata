@@ -30,14 +30,18 @@ export default function Navbar() {
     if (!user) return;
 
     const fetchNotifications = async () => {
-      const { data } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(10);
-      
-      if (data) setNotifications(data);
+      try {
+        const { data, error } = await supabase
+          .from('notifications')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(10);
+        
+        if (!error && data) setNotifications(data);
+      } catch (error) {
+        console.error("Erro ao carregar notificações:", error);
+      }
     };
 
     fetchNotifications();

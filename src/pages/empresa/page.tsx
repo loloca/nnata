@@ -26,57 +26,62 @@ export default function EmpresaPage() {
       if (!id) return;
       setLoading(true);
 
-      // 1. Fetch Company
-      const { data: compData, error: compError } = await supabase
-        .from('companies')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (!compError && compData) {
-        // Map DB fields to UI expectations
-        setEmpresa({
-          ...compData,
-          logo: compData.logo_url || "https://readdy.ai/api/search-image?query=company%20logo%20minimal%20abstract&width=80&height=80",
-          cover: compData.cover_url || "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1200",
-          verificada: true,
-          rating: 5.0,
-          colaboradores: "10-50",
-          fundacao: "2020",
-          totalEstagios: 42,
-          vagasAtivas: 0, // Will update after vagas fetch
-          taxaAprovacao: 95,
-          dimensao: "Média",
-          valores: [
-            { title: "Inovação", icon: "ri-lightbulb-line", desc: "Sempre na vanguarda" },
-            { title: "Qualidade", icon: "ri-medal-line", desc: "Excelência em tudo" },
-            { title: "Pessoas", icon: "ri-group-line", desc: "O nosso maior activo" }
-          ],
-          fotos: [
-            compData.cover_url || "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1200",
-            "https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&q=80&w=1200"
-          ],
-          cultura: compData.description || "Uma cultura focada em resultados e bem-estar dos colaboradores.",
-          beneficiosEstagio: ["Subsídio de transporte", "Mentoria", "Certificado"],
-          areaContratacao: [compData.sector || "Tecnologia"],
-          depoimentos: [
-            { name: "Carlos Silva", role: "Ex-estagiário", avatar: "https://readdy.ai/api/search-image?query=portrait%20young%20man%20professional&width=40&height=40", texto: "Uma experiência incrível de aprendizagem." }
-          ]
-        });
-
-        // 2. Fetch Vacancies
-        const { data: vData, error: vError } = await supabase
-          .from('internships')
+      try {
+        // 1. Fetch Company
+        const { data: compData, error: compError } = await supabase
+          .from('companies')
           .select('*')
-          .eq('company_id', id)
-          .eq('status', 'Activa');
+          .eq('id', id)
+          .single();
 
-        if (!vError && vData) {
-          setVagas(vData);
-          setEmpresa((prev: any) => ({ ...prev, vagasAtivas: vData.length }));
+        if (!compError && compData) {
+          // Map DB fields to UI expectations
+          setEmpresa({
+            ...compData,
+            logo: compData.logo_url || "https://readdy.ai/api/search-image?query=company%20logo%20minimal%20abstract&width=80&height=80",
+            cover: compData.cover_url || "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1200",
+            verificada: true,
+            rating: 5.0,
+            colaboradores: "10-50",
+            fundacao: "2020",
+            totalEstagios: 42,
+            vagasAtivas: 0, // Will update after vagas fetch
+            taxaAprovacao: 95,
+            dimensao: "Média",
+            valores: [
+              { title: "Inovação", icon: "ri-lightbulb-line", desc: "Sempre na vanguarda" },
+              { title: "Qualidade", icon: "ri-medal-line", desc: "Excelência em tudo" },
+              { title: "Pessoas", icon: "ri-group-line", desc: "O nosso maior activo" }
+            ],
+            fotos: [
+              compData.cover_url || "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1200",
+              "https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&q=80&w=1200"
+            ],
+            cultura: compData.description || "Uma cultura focada em resultados e bem-estar dos colaboradores.",
+            beneficiosEstagio: ["Subsídio de transporte", "Mentoria", "Certificado"],
+            areaContratacao: [compData.sector || "Tecnologia"],
+            depoimentos: [
+              { name: "Carlos Silva", role: "Ex-estagiário", avatar: "https://readdy.ai/api/search-image?query=portrait%20young%20man%20professional&width=40&height=40", texto: "Uma experiência incrível de aprendizagem." }
+            ]
+          });
+
+          // 2. Fetch Vacancies
+          const { data: vData, error: vError } = await supabase
+            .from('internships')
+            .select('*')
+            .eq('company_id', id)
+            .eq('status', 'Activa');
+
+          if (!vError && vData) {
+            setVagas(vData);
+            setEmpresa((prev: any) => ({ ...prev, vagasAtivas: vData.length }));
+          }
         }
+      } catch (error) {
+        console.error("Erro ao carregar detalhes da empresa do banco de dados:", error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     fetchEmpresaData();

@@ -32,8 +32,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Check active sessions
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error("Erro de autenticação:", error);
+      } else if (session) {
         const u = session.user;
         setUser({
           id: u.id,
@@ -43,6 +45,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           avatar: u.user_metadata.avatar_url,
         });
       }
+      setIsLoading(false);
+    }).catch(err => {
+      console.error("Erro na comunicação com Supabase:", err);
       setIsLoading(false);
     });
 

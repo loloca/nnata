@@ -14,23 +14,28 @@ export default function FeaturedJobsSection() {
 
   useEffect(() => {
     const fetchJobs = async () => {
-      const { data, error } = await supabase
-        .from('internships')
-        .select(`
-          *,
-          companies (
-            name,
-            logo_url
-          )
-        `)
-        .eq('status', 'Activa')
-        .order('created_at', { ascending: false })
-        .limit(3);
+      try {
+        const { data, error } = await supabase
+          .from('internships')
+          .select(`
+            *,
+            companies (
+              name,
+              logo_url
+            )
+          `)
+          .eq('status', 'Activa')
+          .order('created_at', { ascending: false })
+          .limit(3);
 
-      if (!error && data) {
-        setJobs(data);
+        if (!error && data) {
+          setJobs(data);
+        }
+      } catch (error) {
+        console.error("Erro ao carregar vagas recentes do banco de dados:", error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     fetchJobs();

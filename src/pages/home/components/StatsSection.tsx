@@ -11,32 +11,23 @@ export default function StatsSection() {
 
   useEffect(() => {
     const fetchCounts = async () => {
-      try {
-        const [
-          { count: studentsCount },
-          { count: companiesCount },
-          { count: internshipsCount }
-        ] = await Promise.all([
-          supabase.from('students').select('*', { count: 'exact', head: true }),
-          supabase.from('companies').select('*', { count: 'exact', head: true }),
-          supabase.from('internships').select('*', { count: 'exact', head: true })
-        ]);
+      // Fetch each count independently so one RLS block doesn't affect the others
+      const [studentsResult, companiesResult, internshipsResult] = await Promise.all([
+        supabase.from('students').select('*', { count: 'exact', head: true }),
+        supabase.from('companies').select('*', { count: 'exact', head: true }),
+        supabase.from('internships').select('*', { count: 'exact', head: true }),
+      ]);
 
-        setCounts({
-          estudantes: studentsCount || 0,
-          empresas: companiesCount || 0,
-          vagas: internshipsCount || 0,
-          contratacoes: 34
-        });
-      } catch (error) {
-        console.error("Erro ao carregar estatísticas do banco de dados:", error);
-        setCounts({
-          estudantes: 0,
-          empresas: 0,
-          vagas: 0,
-          contratacoes: 34
-        });
-      }
+      if (studentsResult.error) console.warn('Stats: students count blocked -', studentsResult.error.message);
+      if (companiesResult.error) console.warn('Stats: companies count blocked -', companiesResult.error.message);
+      if (internshipsResult.error) console.warn('Stats: internships count blocked -', internshipsResult.error.message);
+
+      setCounts({
+        estudantes: studentsResult.count ?? 0,
+        empresas: companiesResult.count ?? 0,
+        vagas: internshipsResult.count ?? 0,
+        contratacoes: 34,
+      });
     };
 
     fetchCounts();

@@ -59,7 +59,11 @@ export default function PerfilPage() {
             area: app.internships?.area,
             province: app.internships?.province,
             type: app.internships?.type,
-            feedback: app.feedback
+            feedback: app.feedback,
+            interview_date: app.interview_date,
+            interview_time: app.interview_time,
+            interview_status: app.interview_status,
+            companyId: app.internships?.companies?.id
           })));
         }
 

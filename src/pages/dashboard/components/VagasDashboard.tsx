@@ -22,6 +22,12 @@ const typeColors: Record<string, string> = {
   Remoto: "bg-emerald-50 text-emerald-700",
 };
 
+const internshipTypeColors: Record<string, string> = {
+  "Estágio Curricular": "bg-sky-50 text-sky-700",
+  "Estágio Remunerado": "bg-emerald-50 text-emerald-700",
+  "Estágio Não Remunerado": "bg-amber-50 text-amber-700",
+};
+
 function PublicarVagaModal({ onClose, onRefresh }: { onClose: () => void; onRefresh: () => void }) {
   const { user } = useAuth();
   const [step, setStep] = useState(1);
@@ -30,6 +36,7 @@ function PublicarVagaModal({ onClose, onRefresh }: { onClose: () => void; onRefr
     title: "",
     area: "Tecnologia",
     type: "Presencial",
+    internship_type: "Estágio Curricular",
     province: "Luanda",
     duration: "3 meses",
     description: "",
@@ -54,6 +61,7 @@ function PublicarVagaModal({ onClose, onRefresh }: { onClose: () => void; onRefr
           title: formData.title,
           area: formData.area,
           type: formData.type,
+          internship_type: formData.internship_type,
           province: formData.province,
           duration: formData.duration,
           description: formData.description,
@@ -111,6 +119,28 @@ function PublicarVagaModal({ onClose, onRefresh }: { onClose: () => void; onRefr
                   className="w-full border border-gray-200 rounded-2xl px-5 py-3.5 text-sm focus:outline-none focus:border-[#E8501A] transition-all bg-gray-50/50 focus:bg-white" 
                 />
               </div>
+
+              {/* Tipo de Estágio */}
+              <div>
+                <label className="block text-xs font-bold text-[#1A1A2E] uppercase tracking-wider mb-2">Tipo de Estágio *</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {["Estágio Curricular", "Estágio Remunerado", "Estágio Não Remunerado"].map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => setFormData({...formData, internship_type: t})}
+                      className={`px-3 py-3 rounded-xl text-xs font-bold border-2 transition-all cursor-pointer text-center ${
+                        formData.internship_type === t
+                          ? "border-[#E8501A] bg-orange-50 text-[#E8501A]"
+                          : "border-gray-100 text-gray-500 hover:border-orange-200"
+                      }`}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-[#1A1A2E] uppercase tracking-wider mb-2">Área *</label>
@@ -160,14 +190,15 @@ function PublicarVagaModal({ onClose, onRefresh }: { onClose: () => void; onRefr
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-bold text-[#1A1A2E] uppercase tracking-wider mb-2">Província *</label>
+                <label className="block text-xs font-bold text-[#1A1A2E] uppercase tracking-wider mb-2">Localização *</label>
                 <select 
                   required 
                   value={formData.province}
                   onChange={e => setFormData({...formData, province: e.target.value})}
                   className="w-full border border-gray-200 rounded-2xl px-5 py-3.5 text-sm focus:outline-none focus:border-[#E8501A] appearance-none bg-gray-50/50 cursor-pointer"
                 >
-                  {["Luanda","Benguela","Huambo","Cabinda","Namibe"].map((p) => <option key={p} value={p}>{p}</option>)}
+                  <option value="Sem localidade física / Remoto">🌐 Sem localidade física / Remoto</option>
+                  {["Luanda","Benguela","Huambo","Cabinda","Namibe","Malanje","Huíla","Uíge","Moxico","Bié"].map((p) => <option key={p} value={p}>{p}</option>)}
                 </select>
               </div>
               <div>
@@ -259,6 +290,47 @@ export default function VagasDashboard({ vagas, onVerCandidatos, onRefresh }: Va
     }
   };
 
+  const deleteVaga = async (vaga: any) => {
+    const result = await Swal.fire({
+      icon: 'warning',
+      title: 'Eliminar Vaga?',
+      html: `<p>Tens a certeza que queres eliminar a vaga <strong>"${vaga.title}"</strong>?</p><p class="text-sm text-gray-500 mt-2">Esta acção é irreversível e todas as candidaturas associadas serão perdidas.</p>`,
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Sim, eliminar',
+      cancelButtonText: 'Cancelar',
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      const { error } = await supabase
+        .from('internships')
+        .delete()
+        .eq('id', vaga.id);
+
+      if (error) throw error;
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Vaga eliminada!',
+        text: 'A vaga foi removida com sucesso.',
+        confirmButtonColor: '#1A1A2E',
+        timer: 2000,
+        showConfirmButton: false
+      });
+      onRefresh();
+    } catch (err: any) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro ao eliminar',
+        text: err.message || "Não foi possível eliminar a vaga.",
+        confirmButtonColor: '#E8501A'
+      });
+    }
+  };
+
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
@@ -304,6 +376,11 @@ export default function VagasDashboard({ vagas, onVerCandidatos, onRefresh }: Va
                       <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full ${cfg.bg} ${cfg.color} border border-current opacity-70`}>
                         {cfg.label}
                       </span>
+                      {vaga.internship_type && (
+                        <span className={`text-[10px] font-bold px-3 py-1 rounded-full ${internshipTypeColors[vaga.internship_type] || "bg-gray-100 text-gray-600"}`}>
+                          {vaga.internship_type}
+                        </span>
+                      )}
                       <span className="text-xs text-gray-400 font-bold">
                         {new Date(vaga.created_at).toLocaleDateString('pt-AO')}
                       </span>
@@ -326,6 +403,11 @@ export default function VagasDashboard({ vagas, onVerCandidatos, onRefresh }: Va
                         <i className="ri-team-line text-[#E8501A] text-xs font-bold"></i>
                         <span className="text-xs text-gray-600 font-bold">{vaga.vacancies_count || 1} {vaga.vacancies_count > 1 ? 'vagas' : 'vaga'}</span>
                       </div>
+                      {vaga.type && (
+                        <span className={`text-[10px] px-2.5 py-1 rounded-full font-bold ${typeColors[vaga.type] || "bg-gray-100 text-gray-600"}`}>
+                          {vaga.type}
+                        </span>
+                      )}
                     </div>
                   </div>
                   
@@ -349,7 +431,11 @@ export default function VagasDashboard({ vagas, onVerCandidatos, onRefresh }: Va
                       >
                         <i className={`text-lg ${vaga.status === 'Activa' ? 'ri-lock-2-line' : 'ri-lock-unlock-line'}`}></i>
                       </button>
-                      <button title="Eliminar Vaga" className="w-12 h-12 flex items-center justify-center bg-gray-50 hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-2xl transition-all cursor-pointer">
+                      <button 
+                        onClick={() => deleteVaga(vaga)}
+                        title="Eliminar Vaga" 
+                        className="w-12 h-12 flex items-center justify-center bg-gray-50 hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-2xl transition-all cursor-pointer"
+                      >
                         <i className="ri-delete-bin-line text-lg"></i>
                       </button>
                     </div>
@@ -378,4 +464,3 @@ export default function VagasDashboard({ vagas, onVerCandidatos, onRefresh }: Va
     </div>
   );
 }
-

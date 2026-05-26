@@ -449,7 +449,7 @@ export default function SobrePage() {
                 {[
                   { icon: "ri-map-pin-line", label: "Morada", value: "Rua da Missão, nº 123, Luanda, Angola" },
                   { icon: "ri-mail-send-line", label: "Email Geral", value: "info@estágiaangola.ao" },
-                  { icon: "ri-phone-line", label: "Telefone", value: "+244 923 000 000" },
+                  { icon: "ri-phone-line", label: "Telefone", value: "+244 947 807 090" },
                   { icon: "ri-time-line", label: "Horário", value: "Segunda a Sexta, 8h – 17h (WAT)" },
                 ].map((c) => (
                   <div key={c.label} className="flex items-center gap-4">

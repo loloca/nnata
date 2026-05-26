@@ -30,7 +30,7 @@ export const empresasPublicasMock: EmpresaPublica[] = [
     id: "unitel",
     slug: "unitel",
     name: "Unitel",
-    logo: "https://readdy.ai/api/search-image?query=telecom%20company%20abstract%20icon%20modern%20green%20signal%20waves%20clean%20white%20background%20minimal%20flat&width=100&height=100&seq=ep-logo1&orientation=squarish",
+    logo: "/logos/unitel.png",
     cover: "https://readdy.ai/api/search-image?query=modern%20Angola%20telecom%20office%20interior%20professionals%20working%20open%20space%20technology%20bright%20natural%20light%20architectural%20photography&width=1200&height=380&seq=ep-cover1&orientation=landscape",
     sector: "Telecomunicações",
     dimensao: "Grande empresa (500+ colaboradores)",
@@ -87,7 +87,7 @@ export const empresasPublicasMock: EmpresaPublica[] = [
     id: "sonangol",
     slug: "sonangol",
     name: "Sonangol",
-    logo: "https://readdy.ai/api/search-image?query=oil%20energy%20company%20abstract%20icon%20orange%20flame%20drop%20symbol%20clean%20white%20background%20minimal%20flat&width=100&height=100&seq=ep-logo2&orientation=squarish",
+    logo: "/logos/sonangol.png",
     cover: "https://readdy.ai/api/search-image?query=Angola%20oil%20industry%20offshore%20platform%20modern%20corporate%20headquarters%20Luanda%20professional%20exterior%20architecture%20wide%20photography%20golden%20sunset&width=1200&height=380&seq=ep-cover2&orientation=landscape",
     sector: "Energia & Petróleo",
     dimensao: "Grande empresa (500+ colaboradores)",
@@ -136,7 +136,7 @@ export const empresasPublicasMock: EmpresaPublica[] = [
     id: "bai",
     slug: "bai",
     name: "BAI — Banco Angolano de Investimentos",
-    logo: "https://readdy.ai/api/search-image?query=investment%20bank%20abstract%20icon%20modern%20building%20symbol%20clean%20white%20background%20minimal%20flat&width=100&height=100&seq=ep-logo3&orientation=squarish",
+    logo: "/logos/bai.png",
     cover: "https://readdy.ai/api/search-image?query=modern%20Angola%20bank%20headquarters%20exterior%20glass%20facade%20professional%20architecture%20Luanda%20wide%20editorial%20photography%20warm%20light&width=1200&height=380&seq=ep-cover3&orientation=landscape",
     sector: "Banca & Finanças",
     dimensao: "Grande empresa (500+ colaboradores)",
@@ -191,7 +191,7 @@ export const empresasListagem: {
 }[] = [
   {
     id: "unitel", slug: "unitel", name: "Unitel",
-    logo: "https://readdy.ai/api/search-image?query=telecom%20company%20abstract%20icon%20modern%20green%20signal%20waves%20clean%20white%20background%20minimal%20flat&width=100&height=100&seq=el-logo1&orientation=squarish",
+    logo: "/logos/unitel.png",
     cover: "https://readdy.ai/api/search-image?query=modern%20Angola%20telecom%20office%20interior%20professionals%20working%20open%20space%20technology%20bright%20natural%20light%20architectural%20photography&width=600&height=200&seq=el-cover1&orientation=landscape",
     sector: "Telecomunicações", province: "Luanda", dimensao: "Grande (500+)",
     fundacao: "2001", verificada: true, rating: 4.8, totalEstagios: 124, vagasAtivas: 4,
@@ -200,7 +200,7 @@ export const empresasListagem: {
   },
   {
     id: "sonangol", slug: "sonangol", name: "Sonangol",
-    logo: "https://readdy.ai/api/search-image?query=oil%20energy%20company%20abstract%20icon%20orange%20flame%20drop%20symbol%20clean%20white%20background%20minimal%20flat&width=100&height=100&seq=el-logo2&orientation=squarish",
+    logo: "/logos/sonangol.png",
     cover: "https://readdy.ai/api/search-image?query=Angola%20oil%20industry%20modern%20corporate%20headquarters%20Luanda%20professional%20exterior%20architecture%20wide%20golden%20sunset%20photography&width=600&height=200&seq=el-cover2&orientation=landscape",
     sector: "Energia & Petróleo", province: "Luanda", dimensao: "Grande (500+)",
     fundacao: "1976", verificada: true, rating: 4.6, totalEstagios: 89, vagasAtivas: 2,
@@ -209,7 +209,7 @@ export const empresasListagem: {
   },
   {
     id: "bai", slug: "bai", name: "BAI — Banco Angolano de Investimentos",
-    logo: "https://readdy.ai/api/search-image?query=investment%20bank%20abstract%20icon%20modern%20building%20symbol%20clean%20white%20background%20minimal%20flat&width=100&height=100&seq=el-logo3&orientation=squarish",
+    logo: "/logos/bai.png",
     cover: "https://readdy.ai/api/search-image?query=modern%20Angola%20bank%20headquarters%20exterior%20glass%20facade%20professional%20architecture%20Luanda%20wide%20editorial%20photography%20warm%20light&width=600&height=200&seq=el-cover3&orientation=landscape",
     sector: "Banca & Finanças", province: "Luanda", dimensao: "Grande (500+)",
     fundacao: "1996", verificada: true, rating: 4.7, totalEstagios: 156, vagasAtivas: 3,
@@ -218,7 +218,7 @@ export const empresasListagem: {
   },
   {
     id: "bfa", slug: "bfa", name: "BFA — Banco de Fomento Angola",
-    logo: "https://readdy.ai/api/search-image?query=development%20bank%20abstract%20logo%20blue%20modern%20finance%20symbol%20clean%20white%20background%20flat%20minimal&width=100&height=100&seq=el-logo4&orientation=squarish",
+    logo: "/logos/bfa.png",
     cover: "https://readdy.ai/api/search-image?query=Angola%20modern%20bank%20office%20interior%20professional%20team%20working%20finance%20bright%20natural%20light%20editorial&width=600&height=200&seq=el-cover4&orientation=landscape",
     sector: "Banca & Finanças", province: "Luanda", dimensao: "Grande (500+)",
     fundacao: "1993", verificada: true, rating: 4.5, totalEstagios: 98, vagasAtivas: 2,
@@ -227,7 +227,7 @@ export const empresasListagem: {
   },
   {
     id: "multicaixa", slug: "multicaixa", name: "Multicaixa — EMIS",
-    logo: "https://readdy.ai/api/search-image?query=payment%20fintech%20company%20abstract%20icon%20card%20money%20symbol%20clean%20white%20background%20minimal%20flat%20modern&width=100&height=100&seq=el-logo5&orientation=squarish",
+    logo: "https://www.emis.co.ao/themes/custom/emis/logo.svg",
     cover: "https://readdy.ai/api/search-image?query=digital%20payments%20fintech%20office%20Angola%20modern%20professionals%20technology%20bright%20workspace%20editorial%20photography&width=600&height=200&seq=el-cover5&orientation=landscape",
     sector: "Fintech & Pagamentos", province: "Luanda", dimensao: "Média (100–499)",
     fundacao: "1997", verificada: true, rating: 4.4, totalEstagios: 45, vagasAtivas: 3,
@@ -245,7 +245,7 @@ export const empresasListagem: {
   },
   {
     id: "ensa", slug: "ensa", name: "ENSA — Seguros de Angola",
-    logo: "https://readdy.ai/api/search-image?query=insurance%20company%20abstract%20shield%20icon%20safety%20protection%20clean%20white%20background%20flat%20minimal%20modern&width=100&height=100&seq=el-logo7&orientation=squarish",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/f/f9/Ensa_logo.png",
     cover: "https://readdy.ai/api/search-image?query=insurance%20corporate%20office%20Angola%20professionals%20modern%20interior%20meeting%20bright%20warm%20light%20professional%20editorial%20photography&width=600&height=200&seq=el-cover7&orientation=landscape",
     sector: "Seguros", province: "Luanda", dimensao: "Média (100–499)",
     fundacao: "1978", verificada: true, rating: 4.3, totalEstagios: 52, vagasAtivas: 2,
@@ -263,7 +263,7 @@ export const empresasListagem: {
   },
   {
     id: "kero", slug: "kero", name: "Kero — Supermercados",
-    logo: "https://readdy.ai/api/search-image?query=supermarket%20retail%20company%20abstract%20icon%20shopping%20cart%20clean%20white%20background%20flat%20minimal%20modern&width=100&height=100&seq=el-logo9&orientation=squarish",
+    logo: "https://www.kero.co.ao/wp-content/uploads/2021/04/logo_kero.png",
     cover: "https://readdy.ai/api/search-image?query=Angola%20modern%20supermarket%20interior%20bright%20shelves%20products%20clean%20retail%20editorial%20photography%20wide&width=600&height=200&seq=el-cover9&orientation=landscape",
     sector: "Retalho & Distribuição", province: "Luanda", dimensao: "Grande (500+)",
     fundacao: "2010", verificada: true, rating: 4.2, totalEstagios: 61, vagasAtivas: 5,
@@ -272,7 +272,7 @@ export const empresasListagem: {
   },
   {
     id: "tpa", slug: "tpa", name: "TPA — Televisão Pública de Angola",
-    logo: "https://readdy.ai/api/search-image?query=public%20television%20media%20company%20abstract%20icon%20broadcast%20signal%20clean%20white%20background%20flat%20minimal%20modern&width=100&height=100&seq=el-logo10&orientation=squarish",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/e/e0/TPA_ANGOLA.png",
     cover: "https://readdy.ai/api/search-image?query=Angola%20public%20television%20studio%20broadcast%20professionals%20cameras%20newsroom%20editorial%20photography%20modern%20interior%20bright&width=600&height=200&seq=el-cover10&orientation=landscape",
     sector: "Media & Comunicação", province: "Luanda", dimensao: "Média (100–499)",
     fundacao: "1975", verificada: false, rating: 3.9, totalEstagios: 33, vagasAtivas: 2,
@@ -281,7 +281,7 @@ export const empresasListagem: {
   },
   {
     id: "biocom", slug: "biocom", name: "Biocom — Biocombustível",
-    logo: "https://readdy.ai/api/search-image?query=biofuel%20agribusiness%20company%20leaf%20energy%20icon%20clean%20white%20background%20flat%20minimal%20modern&width=100&height=100&seq=el-logo11&orientation=squarish",
+    logo: "https://www.biocom-angola.com/themes/custom/biocom/logo.svg",
     cover: "https://readdy.ai/api/search-image?query=Angola%20sugar%20cane%20fields%20plantation%20biofuel%20agriculture%20editorial%20wide%20aerial%20photography%20green%20landscape%20golden%20hour&width=600&height=200&seq=el-cover11&orientation=landscape",
     sector: "Agro-Indústria", province: "Malanje", dimensao: "Grande (500+)",
     fundacao: "2009", verificada: true, rating: 4.3, totalEstagios: 42, vagasAtivas: 3,

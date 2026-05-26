@@ -360,7 +360,7 @@ export default function CandidaturaPage() {
                           className="w-full bg-gray-50/50 border-2 border-gray-50 rounded-2xl px-6 py-4 text-sm font-bold text-[#1A1A2E] focus:outline-none focus:border-[#E8501A] appearance-none"
                         >
                           <option value="">Seleccionar...</option>
-                          {["Luanda", "Benguela", "Huambo", "Huíla", "Cabinda"].map(p => <option key={p} value={p}>{p}</option>)}
+                          {["Luanda", "Benguela", "Huambo", "Huíla", "Cabinda", "Sem localidade física / Remoto"].map(p => <option key={p} value={p}>{p}</option>)}
                         </select>
                       </div>
                       <div>

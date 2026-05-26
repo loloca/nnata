@@ -10,7 +10,7 @@ const sectorOptions = [
   "Telecomunicações","Energia & Petróleo","Banca & Finanças","Fintech & Pagamentos",
   "Media & Comunicação","Saúde","Seguros","Indústria & FMCG","Engenharia & Infra-estrutura","Educação",
 ];
-const provinciaOptions = ["Luanda","Benguela","Huambo","Cabinda","Namibe","Malanje","Huíla"];
+const provinciaOptions = ["Luanda","Benguela","Huambo","Cabinda","Namibe","Malanje","Huíla","Sem localidade física / Remoto"];
 
 export default function PerfilEmpresaDashboard({ empresa: initialEmpresa }: PerfilEmpresaDashboardProps) {
   const [empresa, setEmpresa] = useState(initialEmpresa);

@@ -6,15 +6,15 @@ export const stats = [
 ];
 
 export const companies = [
-  { name: "Sonangol", logo: "https://readdy.ai/api/search-image?query=Sonangol%20Angola%20oil%20company%20professional%20logo%20on%20clean%20white%20background%20minimal%20design&width=160&height=80&seq=c1&orientation=landscape" },
-  { name: "BFA", logo: "https://readdy.ai/api/search-image?query=BFA%20Banco%20de%20Fomento%20Angola%20bank%20logo%20clean%20white%20background%20corporate%20minimal&width=160&height=80&seq=c2&orientation=landscape" },
-  { name: "Unitel", logo: "https://readdy.ai/api/search-image?query=Unitel%20Angola%20telecom%20company%20logo%20clean%20white%20background%20modern%20minimal%20corporate&width=160&height=80&seq=c3&orientation=landscape" },
-  { name: "BAI", logo: "https://readdy.ai/api/search-image?query=BAI%20Banco%20Angolano%20de%20Investimentos%20logo%20clean%20white%20background%20corporate%20minimal&width=160&height=80&seq=c4&orientation=landscape" },
+  { name: "Sonangol", logo: "/logos/sonangol.png" },
+  { name: "BFA", logo: "/logos/bfa.png" },
+  { name: "Unitel", logo: "/logos/unitel.png" },
+  { name: "BAI", logo: "/logos/bai.png" },
   { name: "Girassol", logo: "https://readdy.ai/api/search-image?query=Girassol%20Angola%20energy%20company%20professional%20logo%20clean%20white%20background%20modern%20minimal&width=160&height=80&seq=c5&orientation=landscape" },
-  { name: "Ensa", logo: "https://readdy.ai/api/search-image?query=ENSA%20Angola%20insurance%20company%20logo%20clean%20white%20background%20corporate%20minimal%20professional&width=160&height=80&seq=c6&orientation=landscape" },
-  { name: "Multicaixa", logo: "https://readdy.ai/api/search-image?query=Multicaixa%20Angola%20payment%20fintech%20logo%20clean%20white%20background%20modern%20minimal&width=160&height=80&seq=c7&orientation=landscape" },
+  { name: "Ensa", logo: "https://upload.wikimedia.org/wikipedia/commons/f/f9/Ensa_logo.png" },
+  { name: "Multicaixa", logo: "https://www.emis.co.ao/themes/custom/emis/logo.svg" },
   { name: "AAA Seguros", logo: "https://readdy.ai/api/search-image?query=AAA%20Seguros%20Angola%20insurance%20logo%20clean%20white%20background%20corporate%20minimal%20professional&width=160&height=80&seq=c8&orientation=landscape" },
-  { name: "TPA", logo: "https://readdy.ai/api/search-image?query=TPA%20Angola%20television%20media%20company%20logo%20clean%20white%20background%20minimal%20modern&width=160&height=80&seq=c9&orientation=landscape" },
+  { name: "TPA", logo: "https://upload.wikimedia.org/wikipedia/commons/e/e0/TPA_ANGOLA.png" },
   { name: "Refriango", logo: "https://readdy.ai/api/search-image?query=Refriango%20Angola%20beverage%20company%20logo%20clean%20white%20background%20minimal%20corporate&width=160&height=80&seq=c10&orientation=landscape" },
 ];
 
@@ -72,7 +72,7 @@ export const testimonials = [
 export const featuredJobs = [
   {
     company: "Sonangol",
-    logo: "https://readdy.ai/api/search-image?query=Sonangol%20oil%20company%20icon%20logo%20simple%20orange%20flame%20symbol%20clean%20white%20background&width=48&height=48&seq=j1&orientation=squarish",
+    logo: "/logos/sonangol.png",
     title: "Estágio em Engenharia de Petróleo",
     area: "Engenharia",
     province: "Luanda",
@@ -81,7 +81,7 @@ export const featuredJobs = [
   },
   {
     company: "Unitel",
-    logo: "https://readdy.ai/api/search-image?query=Unitel%20telecom%20icon%20logo%20simple%20green%20signal%20symbol%20clean%20white%20background&width=48&height=48&seq=j2&orientation=squarish",
+    logo: "/logos/unitel.png",
     title: "Estágio em Desenvolvimento de Software",
     area: "Tecnologia",
     province: "Luanda",
@@ -90,7 +90,7 @@ export const featuredJobs = [
   },
   {
     company: "BFA",
-    logo: "https://readdy.ai/api/search-image?query=BFA%20bank%20icon%20logo%20simple%20blue%20symbol%20clean%20white%20background%20minimal&width=48&height=48&seq=j3&orientation=squarish",
+    logo: "/logos/bfa.png",
     title: "Estágio em Análise Financeira",
     area: "Finanças",
     province: "Luanda",
@@ -101,7 +101,7 @@ export const featuredJobs = [
 
 export const provinces = [
   "Luanda", "Benguela", "Huambo", "Lubango", "Cabinda",
-  "Malanje", "Uíge", "Namibe", "Soyo", "Lobito",
+  "Malanje", "Uíge", "Namibe", "Soyo", "Lobito", "Sem localidade física / Remoto",
 ];
 
 export const areas = [

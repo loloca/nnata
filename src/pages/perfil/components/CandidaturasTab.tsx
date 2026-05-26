@@ -1,8 +1,11 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import type { Candidatura } from "@/mocks/perfil";
+import { supabase } from "@/lib/supabase";
+import Swal from "sweetalert2";
 
 interface CandidaturasTabProps {
-  candidaturas: Candidatura[];
+  candidaturas: any[];
 }
 
 export default function CandidaturasTab({ candidaturas }: CandidaturasTabProps) {
@@ -13,7 +16,62 @@ export default function CandidaturasTab({ candidaturas }: CandidaturasTabProps) 
     "Em análise": "bg-blue-50 text-blue-600 border-blue-100",
     "Entrevista": "bg-violet-50 text-violet-600 border-violet-100",
     "Aceite": "bg-emerald-50 text-emerald-600 border-emerald-100",
+    "Aprovado": "bg-emerald-50 text-emerald-600 border-emerald-100",
     "Rejeitado": "bg-rose-50 text-rose-600 border-rose-100",
+    "Recusado": "bg-rose-50 text-rose-600 border-rose-100",
+  };
+
+  const handleInterviewResponse = async (candId: string, response: "Aceite" | "Rejeitado", companyId: string, vagaTitle: string) => {
+    const actionText = response === "Aceite" ? "aceitar" : "rejeitar";
+    
+    const result = await Swal.fire({
+      icon: response === "Aceite" ? "question" : "warning",
+      title: `${response === "Aceite" ? "Aceitar" : "Rejeitar"} Entrevista?`,
+      text: `Tens a certeza que queres ${actionText} o agendamento desta entrevista?`,
+      showCancelButton: true,
+      confirmButtonColor: response === "Aceite" ? "#10b981" : "#ef4444",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: response === "Aceite" ? "Sim, aceitar" : "Sim, rejeitar",
+      cancelButtonText: "Cancelar"
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      const { error } = await supabase
+        .from('applications')
+        .update({ interview_status: response })
+        .eq('id', candId);
+
+      if (error) throw error;
+
+      if (companyId) {
+        await supabase.from('notifications').insert({
+          user_id: companyId,
+          title: `Entrevista ${response}`,
+          content: `O candidato ${response === "Aceite" ? "aceitou" : "rejeitou"} o agendamento de entrevista para a vaga "${vagaTitle}".`,
+          type: 'entrevista'
+        });
+      }
+
+      await Swal.fire({
+        icon: 'success',
+        title: `Entrevista ${response}!`,
+        text: `Respondeste ao convite com sucesso.`,
+        confirmButtonColor: '#1A1A2E',
+        timer: 2000,
+        showConfirmButton: false
+      });
+
+      window.location.reload();
+    } catch (err: any) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro ao responder',
+        text: err.message || 'Não foi possível enviar a sua resposta.',
+        confirmButtonColor: '#E8501A'
+      });
+    }
   };
 
   const filtered = filter === "todas" ? candidaturas : candidaturas.filter(c => c.status === filter);
@@ -31,7 +89,7 @@ export default function CandidaturasTab({ candidaturas }: CandidaturasTabProps) 
 
       {/* Status Filter */}
       <div className="flex flex-wrap gap-2 mb-10 bg-white p-2 rounded-[24px] w-fit border-2 border-gray-50 shadow-sm">
-        {["todas", "Pendente", "Em análise", "Entrevista", "Aceite", "Rejeitado"].map((f) => (
+        {["todas", "Pendente", "Em análise", "Entrevista", "Aprovado", "Recusado"].map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
@@ -39,7 +97,7 @@ export default function CandidaturasTab({ candidaturas }: CandidaturasTabProps) 
               filter === f ? "bg-[#1A1A2E] text-white shadow-lg shadow-gray-900/20" : "text-gray-400 hover:text-[#1A1A2E]"
             }`}
           >
-            {f}
+            {f === "todas" ? "Todas" : f}
           </button>
         ))}
       </div>
@@ -101,11 +159,69 @@ export default function CandidaturasTab({ candidaturas }: CandidaturasTabProps) 
                       {c.status}
                     </span>
                   </div>
-                  <button className="w-full sm:w-auto flex items-center justify-center gap-3 bg-gray-50 hover:bg-[#1A1A2E] hover:text-white text-[#1A1A2E] px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all">
-                    Ver Detalhes
-                  </button>
+                  <Link to={`/empresa/${c.companyId}`} className="w-full sm:w-auto flex items-center justify-center gap-3 bg-gray-50 hover:bg-[#1A1A2E] hover:text-white text-[#1A1A2E] px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all">
+                    Ver Empresa
+                  </Link>
                 </div>
               </div>
+
+              {c.status === 'Entrevista' && c.interview_date && (
+                <div className="mt-6 pt-6 border-t border-gray-100">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 bg-violet-50/50 rounded-3xl border border-violet-100">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-2xl bg-violet-100/70 flex items-center justify-center text-violet-600 flex-shrink-0">
+                        <i className="ri-calendar-todo-line text-xl"></i>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black text-violet-600 uppercase tracking-widest font-bold">Entrevista Agendada</p>
+                        <p className="text-sm font-extrabold text-[#1A1A2E] mt-0.5">
+                          📅 {c.interview_date.split('-').reverse().join('/')} às {c.interview_time}
+                        </p>
+                        <p className="text-xs text-gray-500 font-semibold mt-1">
+                          Estado: <span className={`font-black uppercase tracking-wider text-[10px] px-2 py-0.5 rounded-full ${
+                            c.interview_status === 'Aceite' ? 'bg-emerald-100 text-emerald-700' :
+                            c.interview_status === 'Rejeitado' ? 'bg-red-100 text-red-700' :
+                            'bg-amber-100 text-amber-700'
+                          }`}>{c.interview_status || 'Pendente'}</span>
+                        </p>
+                      </div>
+                    </div>
+
+                    {(c.interview_status === 'Pendente' || !c.interview_status) ? (
+                      <div className="flex gap-2 w-full sm:w-auto">
+                        <button
+                          onClick={() => handleInterviewResponse(c.id, "Aceite", c.companyId, c.vagaTitle)}
+                          className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-3 rounded-2xl text-xs font-bold transition-all cursor-pointer shadow-lg shadow-emerald-900/10"
+                        >
+                          <i className="ri-checkbox-circle-line text-base"></i>
+                          Aceitar
+                        </button>
+                        <button
+                          onClick={() => handleInterviewResponse(c.id, "Rejeitado", c.companyId, c.vagaTitle)}
+                          className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 px-5 py-3 rounded-2xl text-xs font-bold transition-all cursor-pointer border border-red-100"
+                        >
+                          <i className="ri-close-circle-line text-base"></i>
+                          Rejeitar
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-xl bg-white border border-gray-100">
+                        {c.interview_status === 'Aceite' ? (
+                          <>
+                            <i className="ri-checkbox-circle-fill text-emerald-500 text-base"></i>
+                            <span className="text-emerald-700">Entrevista Aceite</span>
+                          </>
+                        ) : (
+                          <>
+                            <i className="ri-close-circle-fill text-red-500 text-base"></i>
+                            <span className="text-red-700">Entrevista Recusada</span>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {c.feedback && (
                 <div className="mt-8 pt-8 border-t border-gray-50 bg-gray-50/50 -mx-8 -mb-8 px-8 pb-8 rounded-b-[40px]">

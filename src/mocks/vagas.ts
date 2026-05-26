@@ -7,6 +7,7 @@ export interface Vaga {
   province: string;
   duration: string;
   type: "Presencial" | "Híbrido" | "Remoto";
+  internship_type?: string;
   sector: string;
   description: string;
   requirements: string[];
@@ -21,7 +22,7 @@ export const vagasMock: Vaga[] = [
     id: "1",
     title: "Estágio em Engenharia de Software",
     company: "Unitel",
-    companyLogo: "https://readdy.ai/api/search-image?query=telecom%20company%20abstract%20icon%20modern%20green%20signal%20waves%20clean%20white%20background%20minimal%20flat&width=56&height=56&seq=vl1&orientation=squarish",
+    companyLogo: "/logos/unitel.png",
     area: "Tecnologia",
     province: "Luanda",
     duration: "3 meses",
@@ -38,7 +39,7 @@ export const vagasMock: Vaga[] = [
     id: "2",
     title: "Estágio em Exploração e Produção",
     company: "Sonangol",
-    companyLogo: "https://readdy.ai/api/search-image?query=oil%20energy%20company%20abstract%20icon%20orange%20flame%20drop%20symbol%20clean%20white%20background%20minimal%20flat&width=56&height=56&seq=vl2&orientation=squarish",
+    companyLogo: "/logos/sonangol.png",
     area: "Engenharia",
     province: "Luanda",
     duration: "6 meses",
@@ -55,7 +56,7 @@ export const vagasMock: Vaga[] = [
     id: "3",
     title: "Estágio em Análise Financeira",
     company: "BFA",
-    companyLogo: "https://readdy.ai/api/search-image?query=bank%20financial%20institution%20abstract%20icon%20blue%20shield%20symbol%20clean%20white%20background%20minimal%20flat&width=56&height=56&seq=vl3&orientation=squarish",
+    companyLogo: "/logos/bfa.png",
     area: "Finanças",
     province: "Luanda",
     duration: "4 meses",
@@ -72,7 +73,7 @@ export const vagasMock: Vaga[] = [
     id: "4",
     title: "Estágio em Marketing Digital",
     company: "Multicaixa",
-    companyLogo: "https://readdy.ai/api/search-image?query=fintech%20payment%20company%20abstract%20icon%20modern%20card%20symbol%20clean%20white%20background%20minimal%20flat&width=56&height=56&seq=vl4&orientation=squarish",
+    companyLogo: "https://www.emis.co.ao/themes/custom/emis/logo.svg",
     area: "Marketing",
     province: "Luanda",
     duration: "3 meses",
@@ -89,7 +90,7 @@ export const vagasMock: Vaga[] = [
     id: "5",
     title: "Estágio em Desenvolvimento Mobile",
     company: "BAI",
-    companyLogo: "https://readdy.ai/api/search-image?query=investment%20bank%20abstract%20icon%20modern%20building%20symbol%20clean%20white%20background%20minimal%20flat&width=56&height=56&seq=vl5&orientation=squarish",
+    companyLogo: "/logos/bai.png",
     area: "Tecnologia",
     province: "Luanda",
     duration: "6 meses",
@@ -106,7 +107,7 @@ export const vagasMock: Vaga[] = [
     id: "6",
     title: "Estágio em Jornalismo e Comunicação",
     company: "TPA",
-    companyLogo: "https://readdy.ai/api/search-image?query=tv%20media%20broadcast%20company%20abstract%20icon%20signal%20antenna%20symbol%20clean%20white%20background%20minimal%20flat&width=56&height=56&seq=vl6&orientation=squarish",
+    companyLogo: "https://upload.wikimedia.org/wikipedia/commons/e/e0/TPA_ANGOLA.png",
     area: "Comunicação",
     province: "Luanda",
     duration: "3 meses",
@@ -140,7 +141,7 @@ export const vagasMock: Vaga[] = [
     id: "8",
     title: "Estágio em Gestão de Recursos Humanos",
     company: "ENSA",
-    companyLogo: "https://readdy.ai/api/search-image?query=insurance%20company%20abstract%20icon%20shield%20protection%20symbol%20clean%20white%20background%20minimal%20flat&width=56&height=56&seq=vl8&orientation=squarish",
+    companyLogo: "https://upload.wikimedia.org/wikipedia/commons/f/f9/Ensa_logo.png",
     area: "Gestão",
     province: "Luanda",
     duration: "3 meses",
@@ -208,7 +209,7 @@ export const vagasMock: Vaga[] = [
     id: "12",
     title: "Estágio em Logística e Supply Chain",
     company: "Sonangol",
-    companyLogo: "https://readdy.ai/api/search-image?query=oil%20energy%20company%20abstract%20icon%20orange%20flame%20drop%20symbol%20clean%20white%20background%20minimal%20flat&width=56&height=56&seq=vl12&orientation=squarish",
+    companyLogo: "/logos/sonangol.png",
     area: "Gestão",
     province: "Cabinda",
     duration: "6 meses",

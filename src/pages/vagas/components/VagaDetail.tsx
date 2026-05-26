@@ -95,6 +95,15 @@ export default function VagaDetail({ vaga, onClose }: VagaDetailProps) {
               Destaque
             </span>
           )}
+          {vaga.internship_type && (
+            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${
+              vaga.internship_type === "Estágio Curricular" ? "bg-sky-50 text-sky-700 border-sky-100" :
+              vaga.internship_type === "Estágio Remunerado" ? "bg-emerald-50 text-emerald-700 border-emerald-100" :
+              "bg-amber-50 text-amber-700 border-amber-100"
+            }`}>
+              {vaga.internship_type}
+            </span>
+          )}
           <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${typeColors[vaga.type]}`}>
             {vaga.type}
           </span>

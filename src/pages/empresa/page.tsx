@@ -3,6 +3,170 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import Navbar from "@/components/feature/Navbar";
 import Footer from "@/components/feature/Footer";
 import { supabase } from "@/lib/supabase";
+import Swal from "sweetalert2";
+import { useAuth } from "@/hooks/useAuth";
+
+const REPORT_REASONS = [
+  { id: "fake",          label: "Empresa Falsa",        sub: "Inexistente ou fictícia",  icon: "ri-spy-fill",          color: "text-violet-600", bg: "bg-violet-50", border: "border-violet-300" },
+  { id: "spam",          label: "Publicidade Enganosa", sub: "Spam ou anúncio falso",    icon: "ri-spam-2-fill",       color: "text-amber-600",  bg: "bg-amber-50",  border: "border-amber-300"  },
+  { id: "inappropriate", label: "Conteúdo Impróprio",   sub: "Linguagem ou imagens",     icon: "ri-alert-fill",        color: "text-orange-600", bg: "bg-orange-50", border: "border-orange-300" },
+  { id: "fraud",         label: "Fraude ou Burla",      sub: "Pedidos suspeitos",        icon: "ri-shield-cross-fill", color: "text-red-600",    bg: "bg-red-50",    border: "border-red-300"    },
+];
+
+function DenunciarEmpresaModal({ empresaId, empresaName, onClose }: { empresaId: string; empresaName: string; onClose: () => void }) {
+  const [selectedReason, setSelectedReason] = useState("");
+  const [details, setDetails] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedReason) return;
+    setLoading(true);
+    try {
+      await supabase.from('company_reports').insert({
+        company_id: empresaId,
+        reason: selectedReason,
+        details: details || null,
+        reported_at: new Date().toISOString(),
+      });
+      onClose();
+      Swal.fire({
+        icon: 'success',
+        title: 'Denúncia enviada',
+        text: 'A sua denúncia foi registada e será analisada pela nossa equipa. Obrigado por ajudar a manter a plataforma segura.',
+        confirmButtonColor: '#1A1A2E',
+        timer: 4000,
+        timerProgressBar: true,
+      });
+    } catch {
+      Swal.fire({ icon: 'error', title: 'Erro', text: 'Não foi possível enviar a denúncia. Tente novamente.', confirmButtonColor: '#E8501A' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[80] flex items-center justify-center p-3" onClick={onClose}>
+      <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden max-h-[92vh] flex flex-col" onClick={e => e.stopPropagation()}>
+        <form onSubmit={handleSubmit} className="flex flex-col overflow-hidden">
+
+          {/* ── Header gradient ── */}
+          <div className="relative bg-gradient-to-br from-red-600 via-red-500 to-rose-600 px-5 py-4 overflow-hidden flex-shrink-0">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-12 translate-x-12" />
+            <div className="relative flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+                  <i className="ri-flag-2-fill text-white text-lg" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-white text-base leading-snug">Denunciar Empresa</h3>
+                  <p className="text-red-100/70 text-[11px] truncate max-w-[220px]">{empresaName}</p>
+                </div>
+              </div>
+              <button type="button" onClick={onClose} className="relative w-7 h-7 flex items-center justify-center bg-white/15 hover:bg-white/30 rounded-lg transition-all cursor-pointer text-white flex-shrink-0">
+                <i className="ri-close-line" />
+              </button>
+            </div>
+          </div>
+
+          <div className="p-4 space-y-4 overflow-y-auto">
+
+            {/* ── Reason grid ── */}
+            <div>
+              <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3">
+                Motivo da Denúncia <span className="text-red-500">*</span>
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                {REPORT_REASONS.map((r) => {
+                  const active = selectedReason === r.id;
+                  return (
+                    <button
+                      key={r.id}
+                      type="button"
+                      onClick={() => setSelectedReason(r.id)}
+                      className={`relative flex items-center gap-2.5 p-3 rounded-xl border-2 text-left transition-all duration-150 cursor-pointer ${
+                        active ? `${r.border} ${r.bg}` : "border-gray-100 hover:border-gray-200 hover:bg-gray-50/80"
+                      }`}
+                    >
+                      {active && (
+                        <span className="absolute top-1.5 right-1.5 w-3.5 h-3.5 bg-emerald-500 rounded-full flex items-center justify-center">
+                          <i className="ri-check-line text-white" style={{ fontSize: 8 }} />
+                        </span>
+                      )}
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors ${active ? r.bg : "bg-gray-100"}`}>
+                        <i className={`${r.icon} text-base ${active ? r.color : "text-gray-400"}`} />
+                      </div>
+                      <div className="min-w-0">
+                        <p className={`text-xs font-bold leading-tight ${active ? "text-gray-800" : "text-gray-600"}`}>{r.label}</p>
+                        <p className="text-[10px] text-gray-400 mt-0.5 leading-tight">{r.sub}</p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* ── Details textarea ── */}
+            <div>
+              <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2">
+                Detalhes Adicionais{" "}
+                <span className="font-normal normal-case tracking-normal text-gray-300">(opcional)</span>
+              </label>
+              <div className="relative">
+                <textarea
+                  rows={2}
+                  value={details}
+                  maxLength={500}
+                  onChange={e => setDetails(e.target.value)}
+                  placeholder="Descreve o problema com mais detalhe para nos ajudar na análise..."
+                  className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-sm text-gray-700 placeholder-gray-300 focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all bg-gray-50/60 resize-none"
+                />
+                <span className="absolute bottom-2.5 right-3 text-[10px] text-gray-300 select-none">{details.length}/500</span>
+              </div>
+            </div>
+
+            {/* ── Anonymity banner ── */}
+            <div className="flex items-center gap-2.5 bg-blue-50 border border-blue-100 rounded-xl px-3 py-2.5">
+              <i className="ri-shield-check-fill text-blue-500 text-sm flex-shrink-0" />
+              <p className="text-[11px] text-blue-600 leading-snug">
+                <span className="font-bold">Anónima.</span> Os teus dados não são partilhados. Analisamos em 48h.
+              </p>
+            </div>
+
+            {/* ── Actions ── */}
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 py-2.5 border-2 border-gray-100 text-gray-500 rounded-xl font-bold hover:bg-gray-50 transition-all cursor-pointer text-sm"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={loading || !selectedReason}
+                className="flex-1 py-2.5 bg-gradient-to-r from-red-500 to-rose-600 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl font-bold hover:from-red-600 hover:to-rose-700 active:scale-[0.98] transition-all cursor-pointer text-sm flex items-center justify-center gap-1.5 shadow-md shadow-red-200"
+              >
+                {loading ? (
+                  <>
+                    <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    A enviar...
+                  </>
+                ) : (
+                  <>
+                    <i className="ri-flag-2-line" />
+                    Enviar Denúncia
+                  </>
+                )}
+              </button>
+            </div>
+
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
 
 const typeColors: Record<string, string> = {
   Presencial: "bg-emerald-50 text-emerald-700",
@@ -13,6 +177,7 @@ const typeColors: Record<string, string> = {
 export default function EmpresaPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [empresa, setEmpresa] = useState<any>(null);
   const [vagas, setVagas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -20,6 +185,7 @@ export default function EmpresaPage() {
   const [seguindo, setSeguindo] = useState(false);
   const [fotoIdx, setFotoIdx] = useState(0);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [showDenunciaModal, setShowDenunciaModal] = useState(false);
 
   useEffect(() => {
     const fetchEmpresaData = async () => {
@@ -190,7 +356,7 @@ export default function EmpresaPage() {
                   </div>
 
                   {/* Actions */}
-                  <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
                     <button
                       onClick={() => { setSeguindo((v) => !v); showToast(seguindo ? "Deixaste de seguir a empresa" : "A seguir a empresa!"); }}
                       className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium border transition-all cursor-pointer whitespace-nowrap ${
@@ -203,6 +369,27 @@ export default function EmpresaPage() {
                         <i className={seguindo ? "ri-bell-fill" : "ri-bell-line"}></i>
                       </div>
                       {seguindo ? "A seguir" : "Seguir"}
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (!user) {
+                          Swal.fire({
+                            icon: 'warning',
+                            title: 'Acesso Restrito',
+                            text: 'Precisas de iniciar sessão para denunciar uma empresa.',
+                            confirmButtonColor: '#E8501A',
+                          });
+                          return;
+                        }
+                        setShowDenunciaModal(true);
+                      }}
+                      title="Denunciar esta empresa"
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium border border-gray-200 text-gray-500 hover:border-red-300 hover:text-red-500 hover:bg-red-50 transition-all cursor-pointer whitespace-nowrap"
+                    >
+                      <div className="w-4 h-4 flex items-center justify-center">
+                        <i className="ri-flag-line"></i>
+                      </div>
+                      Denunciar
                     </button>
                     <Link
                       to={`/vagas`}
@@ -285,13 +472,13 @@ export default function EmpresaPage() {
 
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-6">
                     {[
-                      { icon: "ri-building-2-line", label: "Sector", value: empresa.sector },
+                      { icon: "ri-building-2-line", label: "Sector", value: empresa.sector || "Não especificado" },
                       { icon: "ri-group-line", label: "Dimensão", value: empresa.dimensao },
-                      { icon: "ri-map-pin-line", label: "Sede", value: empresa.province + ", Angola" },
+                      { icon: "ri-map-pin-line", label: "Sede", value: (empresa.province || "Angola") + ", Angola" },
                       { icon: "ri-calendar-line", label: "Fundação", value: empresa.fundacao },
-                      { icon: "ri-global-line", label: "Website", value: empresa.website.replace("https://", "") },
-                      { icon: "ri-mail-line", label: "Email", value: empresa.email },
-                    ].map((item) => (
+                      { icon: "ri-global-line", label: "Website", value: empresa.website ? empresa.website.replace("https://", "").replace("http://", "") : "Não disponível" },
+                      { icon: "ri-mail-line", label: "Email", value: empresa.email || "Não disponível" },
+                    ].filter(item => item.value).map((item) => (
                       <div key={item.label} className="flex items-start gap-2.5">
                         <div className="w-8 h-8 flex items-center justify-center bg-orange-50 rounded-lg flex-shrink-0">
                           <i className={`${item.icon} text-[#E8501A] text-sm`}></i>
@@ -530,15 +717,17 @@ export default function EmpresaPage() {
                   </div>
                 ))}
               </div>
-              <a
-                href={empresa.website}
-                target="_blank"
-                rel="nofollow noopener noreferrer"
-                className="flex items-center justify-center gap-2 mt-4 w-full py-2.5 border border-gray-200 text-[#374151] rounded-xl text-sm font-medium hover:border-[#E8501A] hover:text-[#E8501A] transition-colors cursor-pointer"
-              >
-                <div className="w-4 h-4 flex items-center justify-center"><i className="ri-external-link-line"></i></div>
-                Visitar website
-              </a>
+              {empresa.website && (
+                <a
+                  href={empresa.website.startsWith('http') ? empresa.website : `https://${empresa.website}`}
+                  target="_blank"
+                  rel="nofollow noopener noreferrer"
+                  className="flex items-center justify-center gap-2 mt-4 w-full py-2.5 border border-gray-200 text-[#374151] rounded-xl text-sm font-medium hover:border-[#E8501A] hover:text-[#E8501A] transition-colors cursor-pointer"
+                >
+                  <div className="w-4 h-4 flex items-center justify-center"><i className="ri-external-link-line"></i></div>
+                  Visitar website
+                </a>
+              )}
             </div>
 
             {/* Other companies */}
@@ -546,9 +735,9 @@ export default function EmpresaPage() {
               <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Outras Empresas</h4>
               <div className="flex flex-col gap-2">
                 {[
-                  { slug: "unitel", name: "Unitel", sector: "Telecomunicações", logo: "https://readdy.ai/api/search-image?query=telecom%20company%20abstract%20icon%20modern%20green%20signal%20waves%20clean%20white%20background%20minimal%20flat&width=40&height=40&seq=oe1&orientation=squarish" },
-                  { slug: "sonangol", name: "Sonangol", sector: "Energia & Petróleo", logo: "https://readdy.ai/api/search-image?query=oil%20energy%20company%20abstract%20icon%20orange%20flame%20drop%20symbol%20clean%20white%20background%20minimal%20flat&width=40&height=40&seq=oe2&orientation=squarish" },
-                  { slug: "bai", name: "BAI", sector: "Banca & Finanças", logo: "https://readdy.ai/api/search-image?query=investment%20bank%20abstract%20icon%20modern%20building%20symbol%20clean%20white%20background%20minimal%20flat&width=40&height=40&seq=oe3&orientation=squarish" },
+                  { slug: "unitel", name: "Unitel", sector: "Telecomunicações", logo: "/logos/unitel.png" },
+                  { slug: "sonangol", name: "Sonangol", sector: "Energia & Petróleo", logo: "/logos/sonangol.png" },
+                  { slug: "bai", name: "BAI", sector: "Banca & Finanças", logo: "/logos/bai.png" },
                 ].filter((e) => e.slug !== id).slice(0, 2).map((e) => (
                   <Link
                     key={e.slug}
@@ -581,6 +770,15 @@ export default function EmpresaPage() {
           </div>
           {toastMsg}
         </div>
+      )}
+
+      {/* Denúncia Modal */}
+      {showDenunciaModal && (
+        <DenunciarEmpresaModal
+          empresaId={id || ""}
+          empresaName={empresa.name}
+          onClose={() => setShowDenunciaModal(false)}
+        />
       )}
 
       <Footer />

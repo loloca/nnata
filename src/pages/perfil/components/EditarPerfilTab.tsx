@@ -18,6 +18,7 @@ const anoMedioOptions = ["10.ª Classe", "11.ª Classe", "12.ª Classe", "13.ª 
 const provinciaOptions = [
   "Luanda", "Benguela", "Huambo", "Namibe", "Cabinda",
   "Malanje", "Huíla", "Cunene", "Bié", "Moxico",
+  "Sem localidade física / Remoto",
 ];
 
 const medioCourses = [

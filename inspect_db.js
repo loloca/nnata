@@ -15,12 +15,17 @@ envText.split('\n').forEach(line => {
 const supabase = createClient(env.VITE_SUPABASE_URL, env.VITE_SUPABASE_ANON_KEY);
 
 async function run() {
-  console.log("Checking for process_number column...");
-  const { data, error } = await supabase.from('students').select('process_number').limit(1);
+  console.log("Checking companies table in database...");
+  const { data, error } = await supabase.from('companies').select('*');
   if (error) {
-    console.log("Error querying process_number:", error.message, "Code:", error.code);
+    console.log("Error querying companies:", error.message);
   } else {
-    console.log("Column process_number exists! Result:", data);
+    console.log("Companies found in database:", data);
   }
 }
 run();
+
+
+
+
+

@@ -45,10 +45,19 @@ export default function VagaCard({ vaga, onClick, selected }: VagaCardProps) {
               </h3>
               <p className="text-sm text-gray-500">{vaga.company} · {vaga.sector}</p>
             </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
               {vaga.featured && (
                 <span className="text-[10px] font-semibold uppercase tracking-wide bg-[#E8501A]/10 text-[#E8501A] px-2 py-0.5 rounded-full whitespace-nowrap">
                   Destaque
+                </span>
+              )}
+              {vaga.internship_type && (
+                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border whitespace-nowrap ${
+                  vaga.internship_type === "Estágio Curricular" ? "bg-sky-50 text-sky-700 border-sky-100" :
+                  vaga.internship_type === "Estágio Remunerado" ? "bg-emerald-50 text-emerald-700 border-emerald-100" :
+                  "bg-amber-50 text-amber-700 border-amber-100"
+                }`}>
+                  {vaga.internship_type}
                 </span>
               )}
               <span className={`text-xs font-medium px-2.5 py-1 rounded-full whitespace-nowrap ${typeColors[vaga.type] ?? "bg-gray-100 text-gray-600"}`}>

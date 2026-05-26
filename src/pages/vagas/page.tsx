@@ -58,6 +58,7 @@ export default function VagasPage() {
             province: item.province,
             duration: item.duration,
             type: item.type || "Presencial",
+            internship_type: item.internship_type || "Estágio Remunerado",
             sector: item.sector || "Geral",
             description: item.description,
             requirements: item.requirements ? item.requirements.split('\n') : [],

@@ -2,12 +2,13 @@ import { useState } from "react";
 import type { Projeto } from "@/mocks/perfil";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
+import Swal from "sweetalert2";
 
 interface PortfolioTabProps {
   projetos: Projeto[];
 }
 
-function ProjetoModal({ projeto, onClose }: { projeto: Projeto; onClose: () => void }) {
+function ProjetoModal({ projeto, onClose, onDelete }: { projeto: Projeto; onClose: () => void; onDelete?: () => void }) {
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div
@@ -43,13 +44,13 @@ function ProjetoModal({ projeto, onClose }: { projeto: Projeto; onClose: () => v
               </span>
             ))}
           </div>
-          <div className="flex items-center gap-4 mt-10 pt-8 border-t border-gray-50">
+          <div className="flex flex-wrap items-center gap-4 mt-10 pt-8 border-t border-gray-50">
             {projeto.github && (
               <a
                 href={projeto.github.startsWith('http') ? projeto.github : `https://${projeto.github}`}
                 target="_blank"
                 rel="nofollow noopener noreferrer"
-                className="flex-1 flex items-center justify-center gap-3 text-xs font-black uppercase tracking-widest text-[#1A1A2E] border-2 border-gray-100 rounded-2xl px-6 py-4 hover:border-[#1A1A2E] transition-all"
+                className="flex-1 min-w-[200px] flex items-center justify-center gap-3 text-xs font-black uppercase tracking-widest text-[#1A1A2E] border-2 border-gray-100 rounded-2xl px-6 py-4 hover:border-[#1A1A2E] transition-all"
               >
                 <i className="ri-github-line text-lg"></i>
                 Código Fonte
@@ -60,11 +61,21 @@ function ProjetoModal({ projeto, onClose }: { projeto: Projeto; onClose: () => v
                 href={projeto.link}
                 target="_blank"
                 rel="nofollow noopener noreferrer"
-                className="flex-1 flex items-center justify-center gap-3 text-xs font-black uppercase tracking-widest text-white bg-[#E8501A] rounded-2xl px-6 py-4 hover:scale-105 transition-all shadow-xl shadow-orange-900/20"
+                className="flex-1 min-w-[200px] flex items-center justify-center gap-3 text-xs font-black uppercase tracking-widest text-white bg-[#E8501A] rounded-2xl px-6 py-4 hover:scale-105 transition-all shadow-xl shadow-orange-900/20"
               >
                 <i className="ri-external-link-line text-lg"></i>
                 Ver Projecto
               </a>
+            )}
+            {onDelete && (
+              <button
+                type="button"
+                onClick={onDelete}
+                className="flex-1 min-w-[200px] flex items-center justify-center gap-3 text-xs font-black uppercase tracking-widest text-red-600 border-2 border-red-100 rounded-2xl px-6 py-4 hover:bg-red-50 hover:border-red-200 transition-all cursor-pointer"
+              >
+                <i className="ri-delete-bin-line text-lg"></i>
+                Eliminar Projecto
+              </button>
             )}
           </div>
         </div>
@@ -293,12 +304,36 @@ function AddProjetoModal({ onClose, onRefresh }: { onClose: () => void, onRefres
   );
 }
 
-export default function PortfolioTab({ projetos }: PortfolioTabProps) {
+export default function PortfolioTab({ projetos: initialProjetos }: PortfolioTabProps) {
+  const [projetos, setProjetos] = useState<Projeto[]>(initialProjetos);
   const [selectedProjeto, setSelectedProjeto] = useState<Projeto | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [filter, setFilter] = useState<"todos" | "destaques">("todos");
 
   const filtered = filter === "destaques" ? projetos.filter((p) => p.featured) : projetos;
+
+  const deleteProjeto = async (projeto: Projeto) => {
+    const result = await Swal.fire({
+      icon: 'warning',
+      title: 'Eliminar Projecto?',
+      html: `<p>Tens a certeza que queres eliminar <strong>"${projeto.title}"</strong>?</p><p class="text-sm text-gray-500 mt-2">Esta acção é irreversível.</p>`,
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Sim, eliminar',
+      cancelButtonText: 'Cancelar',
+    });
+    if (!result.isConfirmed) return;
+    try {
+      const { error } = await supabase.from('projects').delete().eq('id', projeto.id);
+      if (error) throw error;
+      setProjetos(prev => prev.filter(p => p.id !== projeto.id));
+      setSelectedProjeto(null);
+      Swal.fire({ icon: 'success', title: 'Eliminado!', text: 'O projecto foi removido do teu portfólio.', confirmButtonColor: '#1A1A2E', timer: 2000, showConfirmButton: false });
+    } catch (err: any) {
+      Swal.fire({ icon: 'error', title: 'Erro', text: err.message || 'Não foi possível eliminar o projecto.', confirmButtonColor: '#E8501A' });
+    }
+  };
 
   return (
     <div className="animate-in fade-in duration-700">
@@ -355,22 +390,31 @@ export default function PortfolioTab({ projetos }: PortfolioTabProps) {
               )}
             </div>
             <div className="p-8">
-              <div className="flex items-start justify-between gap-4 mb-4">
-                <h3 className="font-black text-[#1A1A2E] text-lg leading-tight group-hover:text-[#E8501A] transition-colors">{projeto.title}</h3>
-                <span className="text-[10px] font-black text-gray-300 uppercase tracking-tighter mt-1">{projeto.date}</span>
+                <div className="flex items-start justify-between gap-4 mb-4">
+                  <h3 className="font-black text-[#1A1A2E] text-lg leading-tight group-hover:text-[#E8501A] transition-colors">{projeto.title}</h3>
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <span className="text-[10px] font-black text-gray-300 uppercase tracking-tighter mt-1">{projeto.date}</span>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); deleteProjeto(projeto); }}
+                      title="Eliminar projecto"
+                      className="w-8 h-8 flex items-center justify-center rounded-xl bg-gray-50 hover:bg-red-50 text-gray-300 hover:text-red-500 transition-all cursor-pointer flex-shrink-0"
+                    >
+                      <i className="ri-delete-bin-line text-sm"></i>
+                    </button>
+                  </div>
+                </div>
+                <p className="text-gray-500 text-sm font-medium line-clamp-2 leading-relaxed mb-6">{projeto.description}</p>
+                <div className="flex flex-wrap gap-2">
+                  {projeto.tags.slice(0, 3).map((tag) => (
+                    <span key={tag} className="text-[9px] font-black uppercase tracking-widest px-3 py-1.5 bg-gray-50 text-gray-500 rounded-lg border border-gray-100">
+                      {tag}
+                    </span>
+                  ))}
+                  {projeto.tags.length > 3 && (
+                    <span className="text-[9px] font-black text-gray-300 py-1.5">+ {projeto.tags.length - 3}</span>
+                  )}
+                </div>
               </div>
-              <p className="text-gray-500 text-sm font-medium line-clamp-2 leading-relaxed mb-6">{projeto.description}</p>
-              <div className="flex flex-wrap gap-2">
-                {projeto.tags.slice(0, 3).map((tag) => (
-                  <span key={tag} className="text-[9px] font-black uppercase tracking-widest px-3 py-1.5 bg-gray-50 text-gray-500 rounded-lg border border-gray-100">
-                    {tag}
-                  </span>
-                ))}
-                {projeto.tags.length > 3 && (
-                  <span className="text-[9px] font-black text-gray-300 py-1.5">+ {projeto.tags.length - 3}</span>
-                )}
-              </div>
-            </div>
           </div>
         ))}
 
@@ -390,7 +434,7 @@ export default function PortfolioTab({ projetos }: PortfolioTabProps) {
       </div>
 
       {selectedProjeto && (
-        <ProjetoModal projeto={selectedProjeto} onClose={() => setSelectedProjeto(null)} />
+        <ProjetoModal projeto={selectedProjeto} onClose={() => setSelectedProjeto(null)} onDelete={() => deleteProjeto(selectedProjeto)} />
       )}
       {showAddModal && (
         <AddProjetoModal 
